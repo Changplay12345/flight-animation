@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plane Icons Demo</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #1a1a2e;
+            color: white;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+        
+        .icon-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+        
+        .icon-card {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            transition: all 0.2s ease;
+        }
+        
+        .icon-card:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateY(-2px);
+        }
+        
+        .icon-wrapper {
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.05);
+        }
+        
+        .icon-wrapper svg {
+            width: 32px;
+            height: 32px;
+        }
+        
+        .icon-name {
+            font-size: 14px;
+            font-weight: 600;
+            text-align: center;
+        }
+        
+        .icon-desc {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.7);
+            text-align: center;
+        }
+        
+        /* Color variations */
+        .color-blue { color: #00d9ff; }
+        .color-green { color: #00ff88; }
+        .color-orange { color: #ff9f43; }
+        .color-purple { color: #a55eea; }
+        .color-red { color: #e94560; }
+    </style>
+</head>
+<body>
+    <h1 style="text-align: center; margin-bottom: 10px;">✈️ Plane Icons Demo</h1>
+    <p style="text-align: center; color: rgba(255,255,255,0.7);">Choose an icon for the Airport dropdown button</p>
+    
+    <div class="icon-grid">
+        <!-- Option 1 - Simple Plane -->
+        <div class="icon-card">
+            <div class="icon-wrapper color-blue">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/>
+                </svg>
+            </div>
+            <div class="icon-name">Classic Plane</div>
+            <div class="icon-desc">Simple, pointing right</div>
+        </div>
+        
+        <!-- Option 2 - Departure -->
+        <div class="icon-card">
+            <div class="icon-wrapper color-green">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M2.5 19h19v2h-19v-2zm19.57-9.36c-.21-.8-1.04-1.28-1.84-1.06L14.92 10l-6.9-6.43-1.93.51 4.14 7.17-4.97 1.33-1.97-1.54-1.45.39 1.82 3.16.77 1.33 1.6-.43 5.31-1.42 4.35-1.16L21 11.49c.81-.23 1.28-1.05 1.07-1.85z"/>
+                </svg>
+            </div>
+            <div class="icon-name">Departure</div>
+            <div class="icon-desc">Tilted up, taking off</div>
+        </div>
+        
+        <!-- Option 3 - Arrival -->
+        <div class="icon-card">
+            <div class="icon-wrapper color-orange">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M2.5 19h19v2h-19v-2zm16.84-3.15c.8.21 1.62-.26 1.84-1.06.21-.8-.26-1.62-1.06-1.84l-5.31-1.42-2.76-9.02L10.12 3v8.28L5.15 8.95l-.93-2.32-1.45-.39v1.17l1.6 4.05 5.31 1.42 4.35 1.16 5.31 1.42z"/>
+                </svg>
+            </div>
+            <div class="icon-name">Arrival</div>
+            <div class="icon-desc">Tilted down, landing</div>
+        </div>
+        
+        <!-- Option 4 - Tower -->
+        <div class="icon-card">
+            <div class="icon-wrapper color-purple">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M19 9.3V4h-3v2.6L12 3 2 12h3v8h5v-6h4v6h5v-8h3l-3-2.7zm-9 .7c0-1.1.9-2 2-2s2 .9 2 2h-4z"/>
+                </svg>
+            </div>
+            <div class="icon-name">Airport Tower</div>
+            <div class="icon-desc">Building with radar</div>
+        </div>
+        
+        <!-- Option 5 - Lucide Outline -->
+        <div class="icon-card">
+            <div class="icon-wrapper color-red">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/>
+                </svg>
+            </div>
+            <div class="icon-name">Lucide Plane</div>
+            <div class="icon-desc">Clean outline style</div>
+        </div>
+        
+        <!-- Option 6 - Alternative Simple -->
+        <div class="icon-card">
+            <div class="icon-wrapper color-blue">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M20.16 8.8c-.09-.46-.5-.8-.98-.8H4.82c-.48 0-.89.34-.98.8L3 12h18l-.84-3.2zM15 14v4c0 .55-.45 1-1 1h-4c-.55 0-1-.45-1-1v-4H5l1.5 5c.22.73.96 1.25 1.75 1.25h8.5c.79 0 1.53-.52 1.75-1.25L19 14h-4z"/>
+                </svg>
+            </div>
+            <div class="icon-name">Side View</div>
+            <div class="icon-desc">Simple side profile</div>
+        </div>
+        
+        <!-- Option 7 - Paper Plane -->
+        <div class="icon-card">
+            <div class="icon-wrapper color-green">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+                </svg>
+            </div>
+            <div class="icon-name">Paper Plane</div>
+            <div class="icon-desc">Minimal, fast look</div>
+        </div>
+        
+        <!-- Option 8 - Airport Symbol -->
+        <div class="icon-card">
+            <div class="icon-wrapper color-orange">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5zM5 11.5l3-1.5V7l-3 1.5v3z"/>
+                </svg>
+            </div>
+            <div class="icon-name">Airport Symbol</div>
+            <div class="icon-desc">Classic aviation icon</div>
+        </div>
+    </div>
+    
+    <div style="text-align: center; margin-top: 30px;">
+        <p style="color: rgba(255,255,255,0.6); font-size: 14px;">
+            Tell me which number you prefer and I'll implement it in the app!
+        </p>
+    </div>
+</body>
+</html>
