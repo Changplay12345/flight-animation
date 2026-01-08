@@ -69,6 +69,14 @@ interface FlightStore {
   airwayOpacity: number;
   airwayPanelOpen: boolean;
   
+  // Sector Layers (bacc, ctr, fir_world, bacc_subsector, pdr, tma)
+  sectorLayers: Record<string, {
+    visible: boolean;
+    labelsVisible: boolean;
+    fillVisible: boolean;
+    opacity: number;
+  }>;
+  
   // Actions
   setFlights: (flights: Record<string, FlightPoint[]>, meta: Record<string, FlightMeta>, stats: { minFL: number; maxFL: number; totalRows: number }) => void;
   setVisibility: (key: string, visible: boolean) => void;
@@ -101,6 +109,11 @@ interface FlightStore {
   setSelectedAirway: (route: string | null) => void;
   setAirwayOpacity: (opacity: number) => void;
   setAirwayPanelOpen: (open: boolean) => void;
+  
+  setSectorLayerVisible: (layer: string, visible: boolean) => void;
+  setSectorLayerLabels: (layer: string, visible: boolean) => void;
+  setSectorLayerFill: (layer: string, visible: boolean) => void;
+  setSectorLayerOpacity: (layer: string, opacity: number) => void;
   
   updateTimelineBounds: (flightKeys: string[] | null) => void;
 }
@@ -149,6 +162,16 @@ export const useFlightStore = create<FlightStore>((set, get) => ({
   selectedAirway: null,
   airwayOpacity: 0.6,
   airwayPanelOpen: false,
+  
+  // Sector Layers
+  sectorLayers: {
+    bacc: { visible: false, labelsVisible: false, fillVisible: true, opacity: 0.4 },
+    ctr: { visible: false, labelsVisible: false, fillVisible: true, opacity: 0.4 },
+    fir_world: { visible: false, labelsVisible: false, fillVisible: true, opacity: 0.4 },
+    bacc_subsector: { visible: false, labelsVisible: false, fillVisible: true, opacity: 0.4 },
+    pdr: { visible: false, labelsVisible: false, fillVisible: true, opacity: 0.4 },
+    tma: { visible: false, labelsVisible: false, fillVisible: true, opacity: 0.4 },
+  },
   
   setFlights: (flights, meta, stats) => {
     const keys = Object.keys(flights);
@@ -290,6 +313,19 @@ export const useFlightStore = create<FlightStore>((set, get) => ({
   setSelectedAirway: (route) => set({ selectedAirway: route, airwayPanelOpen: !!route }),
   setAirwayOpacity: (opacity) => set({ airwayOpacity: opacity }),
   setAirwayPanelOpen: (open) => set({ airwayPanelOpen: open, selectedAirway: open ? undefined : null }),
+  
+  setSectorLayerVisible: (layer, visible) => set(state => ({
+    sectorLayers: { ...state.sectorLayers, [layer]: { ...state.sectorLayers[layer], visible } }
+  })),
+  setSectorLayerLabels: (layer, visible) => set(state => ({
+    sectorLayers: { ...state.sectorLayers, [layer]: { ...state.sectorLayers[layer], labelsVisible: visible } }
+  })),
+  setSectorLayerFill: (layer, visible) => set(state => ({
+    sectorLayers: { ...state.sectorLayers, [layer]: { ...state.sectorLayers[layer], fillVisible: visible } }
+  })),
+  setSectorLayerOpacity: (layer, opacity) => set(state => ({
+    sectorLayers: { ...state.sectorLayers, [layer]: { ...state.sectorLayers[layer], opacity } }
+  })),
   
   lockToFlight: (key) => {
     const { lockedFlightKey, flightMeta, setVisibility } = get();

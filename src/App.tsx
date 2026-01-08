@@ -9,6 +9,12 @@ import { parseCSV } from './utils/csvParser';
 import { flToColor } from './utils/flightLevel';
 import { AirwayLayer } from './components/AirwayLayer';
 import { GateLayer } from './components/GateLayer';
+import { BACCLayer } from './components/BACCLayer';
+import { CTRLayer } from './components/CTRLayer';
+import { FIRLayer } from './components/FIRLayer';
+import { BACCSubsectorLayer } from './components/BACCSubsectorLayer';
+import { PDRLayer } from './components/PDRLayer';
+import { TMALayer } from './components/TMALayer';
 import { useAnimation } from './hooks/useAnimation';
 import 'leaflet/dist/leaflet.css';
 
@@ -200,13 +206,14 @@ function Toolbar() {
         🌍
       </button>
       <AirwayDropdown />
+      <SectorsDropdown />
       <button 
         id="btn-gates" 
         title="Toggle Airport Gates"
         className={gatesVisible ? 'active' : ''}
         onClick={() => setGatesVisible(!gatesVisible)}
       >
-        
+        🚪 Gates
       </button>
       <div id="time-display">{timeDisplay}</div>
     </div>
@@ -308,6 +315,221 @@ function AirwayDropdown() {
         ✈️ Airways
       </button>
       {dropdownContent}
+    </>
+  );
+}
+
+// ============== Sectors Dropdown ==============
+const SECTOR_LAYERS = [
+  { id: 'bacc', label: 'BACC' },
+  { id: 'ctr', label: 'CTR' },
+  { id: 'fir_world', label: 'FIR' },
+  { id: 'bacc_subsector', label: 'Subsector' },
+  { id: 'pdr', label: 'PDR' },
+  { id: 'tma', label: 'TMA' },
+] as const;
+
+function SectorsDropdown() {
+  const [isOpen, setIsOpen] = useState(false);
+  const [activeLayer, setActiveLayer] = useState<string | null>(null);
+  const [dropdownPos, setDropdownPos] = useState<{ top: number; left: number } | null>(null);
+  const [layerDropdownPos, setLayerDropdownPos] = useState<{ top: number; left: number } | null>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const layerDropdownRef = useRef<HTMLDivElement>(null);
+  
+  const sectorLayers = useFlightStore(state => state.sectorLayers);
+  const setSectorLayerVisible = useFlightStore(state => state.setSectorLayerVisible);
+  const setSectorLayerLabels = useFlightStore(state => state.setSectorLayerLabels);
+  const setSectorLayerFill = useFlightStore(state => state.setSectorLayerFill);
+  const setSectorLayerOpacity = useFlightStore(state => state.setSectorLayerOpacity);
+  const uiHidden = useFlightStore(state => state.uiHidden);
+  
+  // Close on double-click outside or ESC key
+  const outsideClickCountRef = useRef(0);
+  const clickTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  
+  useEffect(() => {
+    if (!isOpen) {
+      outsideClickCountRef.current = 0;
+      return;
+    }
+    
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as Node;
+      const clickedInsideMain = dropdownRef.current?.contains(target) || buttonRef.current?.contains(target);
+      const clickedInsideLayer = layerDropdownRef.current?.contains(target);
+      
+      if (!clickedInsideMain && !clickedInsideLayer) {
+        outsideClickCountRef.current += 1;
+        
+        if (clickTimeoutRef.current) {
+          clearTimeout(clickTimeoutRef.current);
+        }
+        
+        if (outsideClickCountRef.current >= 2) {
+          setIsOpen(false);
+          setActiveLayer(null);
+          outsideClickCountRef.current = 0;
+        } else {
+          // Reset click count after 500ms if no second click
+          clickTimeoutRef.current = setTimeout(() => {
+            outsideClickCountRef.current = 0;
+          }, 500);
+        }
+      }
+    };
+    
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setIsOpen(false);
+        setActiveLayer(null);
+      }
+    };
+    
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
+      if (clickTimeoutRef.current) {
+        clearTimeout(clickTimeoutRef.current);
+      }
+    };
+  }, [isOpen]);
+  
+  // Close when curtain is hidden
+  useEffect(() => {
+    if (uiHidden) {
+      setIsOpen(false);
+      setActiveLayer(null);
+    }
+  }, [uiHidden]);
+  
+  const handleToggle = () => {
+    if (!isOpen && buttonRef.current) {
+      const rect = buttonRef.current.getBoundingClientRect();
+      setDropdownPos({ top: rect.bottom + 8, left: rect.left });
+    }
+    setIsOpen(!isOpen);
+    setActiveLayer(null);
+  };
+  
+  const handleLayerClick = (layerId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (activeLayer === layerId) {
+      setActiveLayer(null);
+    } else {
+      const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+      setLayerDropdownPos({ top: rect.bottom + 4, left: rect.left });
+      setActiveLayer(layerId);
+    }
+  };
+  
+  const handleVisibilityToggle = (layerId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setSectorLayerVisible(layerId, !sectorLayers[layerId]?.visible);
+  };
+  
+  const isFirLayer = activeLayer === 'fir_world';
+  
+  const layerOptionsDropdown = activeLayer && layerDropdownPos && createPortal(
+    <div 
+      ref={layerDropdownRef}
+      className="sector-layer-options"
+      style={{ 
+        position: 'fixed',
+        top: layerDropdownPos.top,
+        left: layerDropdownPos.left,
+        zIndex: 1000000
+      }}
+    >
+      {!isFirLayer && (
+        <div className="sector-option-row">
+          <label>Show Labels</label>
+          <input 
+            type="checkbox" 
+            checked={sectorLayers[activeLayer]?.labelsVisible || false} 
+            onChange={(e) => setSectorLayerLabels(activeLayer, e.target.checked)}
+          />
+        </div>
+      )}
+      {!isFirLayer && (
+        <div className="sector-option-row">
+          <label>Show Fill</label>
+          <input 
+            type="checkbox" 
+            checked={sectorLayers[activeLayer]?.fillVisible || false} 
+            onChange={(e) => setSectorLayerFill(activeLayer, e.target.checked)}
+          />
+        </div>
+      )}
+      <div className="sector-option-row">
+        <label>Opacity</label>
+        <div className="opacity-control">
+          <input
+            type="range"
+            min="0.1"
+            max="0.8"
+            step="0.1"
+            value={sectorLayers[activeLayer]?.opacity || 0.4}
+            onChange={(e) => setSectorLayerOpacity(activeLayer, parseFloat(e.target.value))}
+            className="opacity-slider"
+          />
+          <span className="opacity-value">{((sectorLayers[activeLayer]?.opacity || 0.4) * 100).toFixed(0)}%</span>
+        </div>
+      </div>
+    </div>,
+    document.body
+  );
+  
+  const dropdownContent = isOpen && dropdownPos && createPortal(
+    <div 
+      ref={dropdownRef}
+      className="sectors-dropdown"
+      style={{ 
+        position: 'fixed',
+        top: dropdownPos.top,
+        left: dropdownPos.left,
+        zIndex: 999999
+      }}
+    >
+      <div className="sectors-layer-list">
+        {SECTOR_LAYERS.map(layer => (
+          <div key={layer.id} className="sector-layer-item">
+            <div 
+              className={`sector-layer-name ${activeLayer === layer.id ? 'active' : ''}`}
+              onClick={(e) => handleLayerClick(layer.id, e)}
+              role="img"
+              aria-label={layer.label}
+            >
+              {layer.label}
+            </div>
+            <div 
+              className={`sector-visibility-box ${sectorLayers[layer.id]?.visible ? 'visible' : ''}`}
+              onClick={(e) => handleVisibilityToggle(layer.id, e)}
+              title={sectorLayers[layer.id]?.visible ? 'Hide' : 'Show'}
+            />
+          </div>
+        ))}
+      </div>
+    </div>,
+    document.body
+  );
+  
+  return (
+    <>
+      <button 
+        ref={buttonRef}
+        id="btn-sectors" 
+        title="Sector Layers"
+        className={isOpen ? 'active' : ''}
+        onClick={handleToggle}
+      >
+        🗺️ Sectors
+      </button>
+      {dropdownContent}
+      {layerOptionsDropdown}
     </>
   );
 }
@@ -1042,6 +1264,9 @@ function FlightTooltip() {
   const hideTimeoutRef = useRef<number | null>(null);
   
   useEffect(() => {
+    let lastHoverKey: string | null = null;
+    let lastHoverTime = 0;
+    
     (window as any).showFlightTooltip = (data: { x: number; y: number; key: string }) => {
       if (useFlightStore.getState().lockedFlightKey) return;
       // Clear any pending hide timeout
@@ -1049,6 +1274,8 @@ function FlightTooltip() {
         clearTimeout(hideTimeoutRef.current);
         hideTimeoutRef.current = null;
       }
+      lastHoverKey = data.key;
+      lastHoverTime = Date.now();
       setHoverData({ visible: true, ...data });
     };
     (window as any).moveFlightTooltip = (data: { x: number; y: number }) => {
@@ -1058,10 +1285,12 @@ function FlightTooltip() {
         clearTimeout(hideTimeoutRef.current);
         hideTimeoutRef.current = null;
       }
+      lastHoverTime = Date.now();
       setHoverData(prev => prev ? { ...prev, ...data } : null);
     };
     (window as any).hideFlightTooltip = () => {
       if (useFlightStore.getState().lockedFlightKey) return;
+      lastHoverKey = null;
       // Use a small timeout to prevent flickering when moving between flights
       hideTimeoutRef.current = window.setTimeout(() => {
         setHoverData(null);
@@ -1071,6 +1300,23 @@ function FlightTooltip() {
     (window as any).focusOnFlight = (key: string, withZoom = false) => {
       useFlightStore.getState().focusFlight(key, withZoom);
     };
+    
+    // Safety check: hide tooltip if no hover activity for 500ms
+    const safetyInterval = setInterval(() => {
+      if (lastHoverKey && Date.now() - lastHoverTime > 500) {
+        // Check if mouse is still over the marker element
+        const markers = (window as any).flightMarkers;
+        if (markers && markers[lastHoverKey]) {
+          const el = markers[lastHoverKey].getElement?.();
+          if (el && !el.matches(':hover')) {
+            lastHoverKey = null;
+            setHoverData(null);
+          }
+        }
+      }
+    }, 200);
+    
+    return () => clearInterval(safetyInterval);
   }, []);
   
   // Get current flight data
@@ -1874,6 +2120,12 @@ function FlightMap({ lightMode, satelliteMode }: { lightMode: boolean; satellite
       <AirportLayer />
       <AirwayLayer />
       <GateLayer />
+      <BACCLayer />
+      <CTRLayer />
+      <FIRLayer />
+      <BACCSubsectorLayer />
+      <PDRLayer />
+      <TMALayer />
     </MapContainer>
   );
 }

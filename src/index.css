@@ -1856,3 +1856,314 @@ body.light-mode .filter-flight-item .flight-route {
 body.light-mode .filter-flight-item:hover {
   background: rgba(0, 0, 0, 0.1);
 }
+
+/* ============== Sectors Dropdown ============== */
+.sectors-dropdown {
+  background: #1a1a2e;
+  border: 1px solid #2d2d44;
+  border-radius: 8px;
+  padding: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+}
+
+.sectors-layer-list {
+  display: flex;
+  flex-direction: row;
+  gap: 0;
+}
+
+.sector-layer-item {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  border-right: 1px solid #2d2d44;
+}
+
+.sector-layer-item:last-child {
+  border-right: none;
+}
+
+.sector-visibility-box {
+  width: 10px;
+  height: 10px;
+  border: 2px solid #555;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: transparent;
+  margin: 0 6px 0 1px;
+  /* HITBOX: Use padding to increase clickable area on all sides */
+  padding: 4px;               /* top=4, right=4, bottom=4, left=4 */
+  box-sizing: content-box;    /* Ensures padding adds to size */
+}
+
+.sector-visibility-box:hover {
+  border-color: #888;
+}
+
+.sector-visibility-box.visible {
+  background: #00d9ff;
+  border-color: #00d9ff;
+}
+
+.sector-layer-name {
+  color: #aaa;
+  font-size: 11px;
+  cursor: default;
+  /* HITBOX: Adjust padding to change clickable area - top right bottom left */
+  padding: 6px 12px 6px 6px;
+  border-radius: 4px;
+  transition: all 0.2s;
+  margin: 0 6px 0 6px; 
+  white-space: nowrap;
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  pointer-events: auto;
+  -webkit-user-drag: none;
+  -webkit-touch-callout: none;
+}
+
+.sector-layer-name:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.sector-layer-name.active {
+  color: #00d9ff;
+  background: rgba(0, 217, 255, 0.15);
+}
+
+/* Sector Layer Options Dropdown */
+.sector-layer-options {
+  background: #1a1a2e;
+  border: 1px solid #2d2d44;
+  border-radius: 6px;
+  padding: 10px;
+  min-width: 160px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+}
+
+.sector-option-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 0;
+  border-bottom: 1px solid #2d2d44;
+}
+
+.sector-option-row:last-child {
+  border-bottom: none;
+}
+
+.sector-option-row label {
+  color: #ccc;
+  font-size: 12px;
+}
+
+.sector-option-row input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+.sector-option-row .opacity-control {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.sector-option-row .opacity-slider {
+  width: 60px;
+}
+
+.sector-option-row .opacity-value {
+  color: #888;
+  font-size: 11px;
+  min-width: 30px;
+}
+
+/* Light mode */
+body.light-mode .sectors-dropdown {
+  background: #ffffff;
+  border-color: #e0e0e0;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+body.light-mode .sector-layer-item {
+  border-right-color: #e0e0e0;
+}
+
+body.light-mode .sector-layer-name {
+  color: #666;
+}
+
+body.light-mode .sector-layer-name:hover {
+  color: #333;
+  background: rgba(0, 0, 0, 0.05);
+}
+
+body.light-mode .sector-layer-name.active {
+  color: #1976d2;
+  background: rgba(25, 118, 210, 0.1);
+}
+
+body.light-mode .sector-visibility-box {
+  border-color: #ccc;
+}
+
+body.light-mode .sector-visibility-box:hover {
+  border-color: #999;
+}
+
+body.light-mode .sector-visibility-box.visible {
+  background: #1976d2;
+  border-color: #1976d2;
+}
+
+body.light-mode .sector-layer-options {
+  background: #ffffff;
+  border-color: #e0e0e0;
+}
+
+body.light-mode .sector-option-row {
+  border-bottom-color: #e0e0e0;
+}
+
+body.light-mode .sector-option-row label {
+  color: #333;
+}
+
+/* Sector Labels on Map */
+.bacc-sector-label {
+  background: transparent !important;
+  border: none !important;
+}
+
+.bacc-sector-label div {
+  text-align: center;
+  font-size: 11px;
+  line-height: 1.3;
+  white-space: nowrap;
+  padding: 4px 8px;
+  border-radius: 4px;
+  pointer-events: none;
+}
+
+.bacc-label-dark div {
+  background: rgba(0, 0, 0, 0.8);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+}
+
+.bacc-label-light div {
+  background: rgba(255, 255, 255, 0.9);
+  color: #333;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+#btn-sectors {
+  background: #2d2d44;
+  color: #fff;
+  border: 1px solid #3d3d5c;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  transition: all 0.2s;
+}
+
+#btn-sectors:hover {
+  background: #3d3d5c;
+}
+
+#btn-sectors.active {
+  background: #00d9ff;
+  color: #000;
+  border-color: #00d9ff;
+}
+
+body.light-mode #btn-sectors {
+  background: #f0f0f0;
+  color: #333;
+  border-color: #ccc;
+}
+
+body.light-mode #btn-sectors:hover {
+  background: #e0e0e0;
+}
+
+body.light-mode #btn-sectors.active {
+  background: #1976d2;
+  color: #fff;
+  border-color: #1976d2;
+}
+
+/* Generic Sector Labels */
+.sector-label {
+  background: transparent !important;
+  border: none !important;
+}
+
+.sector-label div {
+  text-align: center;
+  font-size: 10px;
+  line-height: 1.3;
+  white-space: nowrap;
+  padding: 3px 6px;
+  border-radius: 3px;
+  pointer-events: none;
+}
+
+.sector-label-dark div {
+  background: rgba(0, 0, 0, 0.8);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+}
+
+.sector-label-light div {
+  background: rgba(255, 255, 255, 0.9);
+  color: #333;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+/* CTR Layer Labels */
+.ctr-label div {
+  border-left: 3px solid #FF9F43;
+}
+
+body.light-mode .ctr-label div {
+  border-left-color: #E67E22;
+}
+
+/* Subsector Layer Labels */
+.subsector-label div {
+  border-left: 3px solid #00CED1;
+}
+
+body.light-mode .subsector-label div {
+  border-left-color: #008B8B;
+}
+
+/* PDR Layer Labels */
+.pdr-label div {
+  border-left: 3px solid #E74C3C;
+}
+
+body.light-mode .pdr-label div {
+  border-left-color: #C0392B;
+}
+
+/* TMA Layer Labels */
+.tma-label div {
+  border-left: 3px solid #3498DB;
+}
+
+body.light-mode .tma-label div {
+  border-left-color: #2980B9;
+}
