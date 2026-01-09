@@ -1261,6 +1261,35 @@ body.light-mode .airway-dropdown .opacity-value {
   border-radius: 4px;
 }
 
+#file-picker .testing-btn {
+  margin-top: 20px;
+  background: transparent;
+  color: #888;
+  border: 1px dashed #555;
+  padding: 10px 25px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.2s;
+}
+
+#file-picker .testing-btn:hover {
+  background: rgba(255,255,255,0.05);
+  color: #aaa;
+  border-color: #777;
+}
+
+body.light-mode #file-picker .testing-btn {
+  color: #666;
+  border-color: #aaa;
+}
+
+body.light-mode #file-picker .testing-btn:hover {
+  background: rgba(0,0,0,0.05);
+  color: #333;
+  border-color: #666;
+}
+
 .filter-row {
   margin-bottom: 8px;
 }

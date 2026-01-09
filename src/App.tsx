@@ -67,6 +67,15 @@ function FilePicker({ onFileLoad, setLoadingText }: { onFileLoad: () => void; se
           onChange={handleFileChange}
         />
         <div className="schema-hint">Required columns: flight_key, timestamp_utc, latitude, longitude</div>
+        <button 
+          className="testing-btn"
+          onClick={() => {
+            setLoadingText(null);
+            onFileLoad();
+          }}
+        >
+          🧪 Testing
+        </button>
     </div>
   );
 }
@@ -120,6 +129,10 @@ function Toolbar() {
   const setSatelliteMode = useFlightStore(state => state.setSatelliteMode);
   const tagsVisible = useFlightStore(state => state.tagsVisible);
   const setTagsVisible = useFlightStore(state => state.setTagsVisible);
+  const airwaysVisible = useFlightStore(state => state.airwaysVisible);
+  const setAirwaysVisible = useFlightStore(state => state.setAirwaysVisible);
+  const gatesVisible = useFlightStore(state => state.gatesVisible);
+  const setGatesVisible = useFlightStore(state => state.setGatesVisible);
   
   const { play, pause, rewind } = useAnimation();
   
@@ -182,6 +195,22 @@ function Toolbar() {
       </label>
       <TrailDecayControl />
       <SectorsDropdown />
+      <button 
+        id="btn-airways" 
+        title="Toggle Airways"
+        className={airwaysVisible ? 'active' : ''}
+        onClick={() => setAirwaysVisible(!airwaysVisible)}
+      >
+        ✈️ Airway
+      </button>
+      <button 
+        id="btn-gates" 
+        title="Toggle Airport Gates"
+        className={gatesVisible ? 'active' : ''}
+        onClick={() => setGatesVisible(!gatesVisible)}
+      >
+        🚪 Gates
+      </button>
       <AirportDropdown />
       <button 
         id="btn-theme" 
@@ -219,15 +248,13 @@ function Toolbar() {
   );
 }
 
-// ============== Sectors Dropdown ==============
+// ============== Airspace Dropdown ==============
 const SECTOR_LAYERS = [
   { id: 'bacc', label: 'BACC' },
   { id: 'tma', label: 'TMA' },
   { id: 'ctr', label: 'CTR' },
   { id: 'fir_world', label: 'FIR' },
-  { id: 'airway', label: 'Airway' },
   { id: 'pdr', label: 'PDR' },
-  { id: 'gates', label: 'Gates' },
 ] as const;
 
 function SectorsDropdown() {
@@ -245,12 +272,6 @@ function SectorsDropdown() {
   const setSectorLayerFill = useFlightStore(state => state.setSectorLayerFill);
   const setSectorLayerOpacity = useFlightStore(state => state.setSectorLayerOpacity);
   const uiHidden = useFlightStore(state => state.uiHidden);
-  const airwaysVisible = useFlightStore(state => state.airwaysVisible);
-  const setAirwaysVisible = useFlightStore(state => state.setAirwaysVisible);
-  const airwayOpacity = useFlightStore(state => state.airwayOpacity);
-  const setAirwayOpacity = useFlightStore(state => state.setAirwayOpacity);
-  const gatesVisible = useFlightStore(state => state.gatesVisible);
-  const setGatesVisible = useFlightStore(state => state.setGatesVisible);
   
   // Close on double-click outside or ESC key
   const outsideClickCountRef = useRef(0);
@@ -337,23 +358,14 @@ function SectorsDropdown() {
   
   const handleVisibilityToggle = (layerId: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    if (layerId === 'airway') {
-      setAirwaysVisible(!airwaysVisible);
-    } else if (layerId === 'gates') {
-      setGatesVisible(!gatesVisible);
-    } else {
-      setSectorLayerVisible(layerId, !sectorLayers[layerId]?.visible);
-    }
+    setSectorLayerVisible(layerId, !sectorLayers[layerId]?.visible);
   };
   
   const getLayerVisible = (layerId: string): boolean => {
-    if (layerId === 'airway') return airwaysVisible;
-    if (layerId === 'gates') return gatesVisible;
     return sectorLayers[layerId]?.visible || false;
   };
   
   const isFirLayer = activeLayer === 'fir_world';
-  const isAirwayLayer = activeLayer === 'airway';
   
   const layerOptionsDropdown = activeLayer && layerDropdownPos && createPortal(
     <div 
@@ -366,7 +378,7 @@ function SectorsDropdown() {
         zIndex: 1000000
       }}
     >
-      {!isFirLayer && !isAirwayLayer && (
+      {!isFirLayer && (
         <div className="sector-option-row">
           <label>Show Labels</label>
           <input 
@@ -376,7 +388,7 @@ function SectorsDropdown() {
           />
         </div>
       )}
-      {!isFirLayer && !isAirwayLayer && (
+      {!isFirLayer && (
         <div className="sector-option-row">
           <label>Show Fill</label>
           <input 
@@ -394,11 +406,11 @@ function SectorsDropdown() {
             min="0.1"
             max="0.8"
             step="0.1"
-            value={isAirwayLayer ? airwayOpacity : (sectorLayers[activeLayer]?.opacity || 0.4)}
-            onChange={(e) => isAirwayLayer ? setAirwayOpacity(parseFloat(e.target.value)) : setSectorLayerOpacity(activeLayer, parseFloat(e.target.value))}
+            value={sectorLayers[activeLayer]?.opacity || 0.4}
+            onChange={(e) => setSectorLayerOpacity(activeLayer, parseFloat(e.target.value))}
             className="opacity-slider"
           />
-          <span className="opacity-value">{((isAirwayLayer ? airwayOpacity : (sectorLayers[activeLayer]?.opacity || 0.4)) * 100).toFixed(0)}%</span>
+          <span className="opacity-value">{((sectorLayers[activeLayer]?.opacity || 0.4) * 100).toFixed(0)}%</span>
         </div>
       </div>
     </div>,
@@ -444,11 +456,11 @@ function SectorsDropdown() {
       <button 
         ref={buttonRef}
         id="btn-sectors" 
-        title="Sector Layers"
+        title="Airspace Layers"
         className={isOpen ? 'active' : ''}
         onClick={handleToggle}
       >
-        🗺️ Sectors
+        🌐 Airspace
       </button>
       {dropdownContent}
       {layerOptionsDropdown}
