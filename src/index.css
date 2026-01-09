@@ -2167,3 +2167,46 @@ body.light-mode .pdr-label div {
 body.light-mode .tma-label div {
   border-left-color: #2980B9;
 }
+
+/* Flight Tags */
+.flight-tag {
+  background: transparent !important;
+  border: none !important;
+}
+
+#btn-tags {
+  background: #2d2d44;
+  color: #fff;
+  border: 1px solid #3d3d5c;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  transition: all 0.2s;
+}
+
+#btn-tags:hover {
+  background: #3d3d5c;
+}
+
+#btn-tags.active {
+  background: #00d9ff;
+  color: #000;
+  border-color: #00d9ff;
+}
+
+body.light-mode #btn-tags {
+  background: #f0f0f0;
+  color: #333;
+  border-color: #ccc;
+}
+
+body.light-mode #btn-tags:hover {
+  background: #e0e0e0;
+}
+
+body.light-mode #btn-tags.active {
+  background: #1976d2;
+  color: #fff;
+  border-color: #1976d2;
+}

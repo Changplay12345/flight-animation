@@ -105,7 +105,7 @@ export function FIRLayer() {
     geoJsonLayerRef.current = L.geoJSON(geoDataRef.current as any, {
       style: () => ({
         fillColor: 'transparent',
-        weight: 2,
+        weight: 1,  // LINE WIDTH: Adjust this value to change line thickness
         opacity: opacity,
         color: getColor(),
         fillOpacity: 0,

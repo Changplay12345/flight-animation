@@ -12,9 +12,9 @@ import { GateLayer } from './components/GateLayer';
 import { BACCLayer } from './components/BACCLayer';
 import { CTRLayer } from './components/CTRLayer';
 import { FIRLayer } from './components/FIRLayer';
-import { BACCSubsectorLayer } from './components/BACCSubsectorLayer';
 import { PDRLayer } from './components/PDRLayer';
 import { TMALayer } from './components/TMALayer';
+import { FlightTagsLayer } from './components/FlightTagsLayer';
 import { useAnimation } from './hooks/useAnimation';
 import 'leaflet/dist/leaflet.css';
 
@@ -118,8 +118,8 @@ function Toolbar() {
   const setLightMode = useFlightStore(state => state.setLightMode);
   const satelliteMode = useFlightStore(state => state.satelliteMode);
   const setSatelliteMode = useFlightStore(state => state.setSatelliteMode);
-    const gatesVisible = useFlightStore(state => state.gatesVisible);
-  const setGatesVisible = useFlightStore(state => state.setGatesVisible);
+  const tagsVisible = useFlightStore(state => state.tagsVisible);
+  const setTagsVisible = useFlightStore(state => state.setTagsVisible);
   
   const { play, pause, rewind } = useAnimation();
   
@@ -181,14 +181,7 @@ function Toolbar() {
         <span>Full</span>
       </label>
       <TrailDecayControl />
-      <button 
-        id="btn-filter" 
-        title="Filter Flights"
-        className={filterPanelOpen ? 'active' : ''}
-        onClick={() => setFilterPanelOpen(!filterPanelOpen)}
-      >
-        🔍 Filter
-      </button>
+      <SectorsDropdown />
       <AirportDropdown />
       <button 
         id="btn-theme" 
@@ -205,128 +198,36 @@ function Toolbar() {
       >
         🌍
       </button>
-      <AirwayDropdown />
-      <SectorsDropdown />
       <button 
-        id="btn-gates" 
-        title="Toggle Airport Gates"
-        className={gatesVisible ? 'active' : ''}
-        onClick={() => setGatesVisible(!gatesVisible)}
+        id="btn-filter" 
+        title="Filter Flights"
+        className={filterPanelOpen ? 'active' : ''}
+        onClick={() => setFilterPanelOpen(!filterPanelOpen)}
       >
-        🚪 Gates
+        🔍 Filter
+      </button>
+      <button 
+        id="btn-tags" 
+        title="Toggle Flight Tags"
+        className={tagsVisible ? 'active' : ''}
+        onClick={() => setTagsVisible(!tagsVisible)}
+      >
+        🏷️ Tags
       </button>
       <div id="time-display">{timeDisplay}</div>
     </div>
   );
 }
 
-// ============== Airway Dropdown ==============
-function AirwayDropdown() {
-  const [isOpen, setIsOpen] = useState(false);
-  const [dropdownPos, setDropdownPos] = useState<{ top: number; left: number } | null>(null);
-  const buttonRef = useRef<HTMLButtonElement>(null);
-  const dropdownRef = useRef<HTMLDivElement>(null);
-  const airwaysVisible = useFlightStore(state => state.airwaysVisible);
-  const setAirwaysVisible = useFlightStore(state => state.setAirwaysVisible);
-  const airwayOpacity = useFlightStore(state => state.airwayOpacity);
-  const setAirwayOpacity = useFlightStore(state => state.setAirwayOpacity);
-  const uiHidden = useFlightStore(state => state.uiHidden);
-  
-  // Close on click outside
-  useEffect(() => {
-    if (!isOpen) return;
-    const handleClickOutside = (e: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node) &&
-          buttonRef.current && !buttonRef.current.contains(e.target as Node)) {
-        setIsOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [isOpen]);
-  
-  // Close when curtain is hidden
-  useEffect(() => {
-    if (uiHidden) setIsOpen(false);
-  }, [uiHidden]);
-  
-  const handleToggle = () => {
-    if (!isOpen && buttonRef.current) {
-      const rect = buttonRef.current.getBoundingClientRect();
-      setDropdownPos({ top: rect.bottom + 8, left: rect.left });
-    }
-    setIsOpen(!isOpen);
-  };
-  
-  const handleOpacityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setAirwayOpacity(parseFloat(e.target.value));
-  };
-  
-  const dropdownContent = isOpen && dropdownPos && createPortal(
-    <div 
-      ref={dropdownRef}
-      className="airway-dropdown"
-      style={{ 
-        position: 'fixed',
-        top: dropdownPos.top,
-        left: dropdownPos.left,
-        zIndex: 999999
-      }}
-    >
-      <div className="airway-dropdown-content">
-        <div className="airway-dropdown-row">
-          <label>Show Airways</label>
-          <input 
-            type="checkbox" 
-            checked={airwaysVisible} 
-            onChange={(e) => setAirwaysVisible(e.target.checked)}
-          />
-        </div>
-        <div className="airway-dropdown-row">
-          <label>Opacity</label>
-          <div className="opacity-control">
-            <input
-              type="range"
-              min="0"
-              max="1"
-              step="0.1"
-              value={airwayOpacity}
-              onChange={handleOpacityChange}
-              className="opacity-slider"
-              disabled={!airwaysVisible}
-            />
-            <span className="opacity-value">{(airwayOpacity * 100).toFixed(0)}%</span>
-          </div>
-        </div>
-      </div>
-    </div>,
-    document.body
-  );
-  
-  return (
-    <>
-      <button 
-        ref={buttonRef}
-        id="btn-airways" 
-        title="Airway Settings"
-        className={isOpen ? 'active' : ''}
-        onClick={handleToggle}
-      >
-        ✈️ Airways
-      </button>
-      {dropdownContent}
-    </>
-  );
-}
-
 // ============== Sectors Dropdown ==============
 const SECTOR_LAYERS = [
   { id: 'bacc', label: 'BACC' },
+  { id: 'tma', label: 'TMA' },
   { id: 'ctr', label: 'CTR' },
   { id: 'fir_world', label: 'FIR' },
-  { id: 'bacc_subsector', label: 'Subsector' },
+  { id: 'airway', label: 'Airway' },
   { id: 'pdr', label: 'PDR' },
-  { id: 'tma', label: 'TMA' },
+  { id: 'gates', label: 'Gates' },
 ] as const;
 
 function SectorsDropdown() {
@@ -344,6 +245,12 @@ function SectorsDropdown() {
   const setSectorLayerFill = useFlightStore(state => state.setSectorLayerFill);
   const setSectorLayerOpacity = useFlightStore(state => state.setSectorLayerOpacity);
   const uiHidden = useFlightStore(state => state.uiHidden);
+  const airwaysVisible = useFlightStore(state => state.airwaysVisible);
+  const setAirwaysVisible = useFlightStore(state => state.setAirwaysVisible);
+  const airwayOpacity = useFlightStore(state => state.airwayOpacity);
+  const setAirwayOpacity = useFlightStore(state => state.setAirwayOpacity);
+  const gatesVisible = useFlightStore(state => state.gatesVisible);
+  const setGatesVisible = useFlightStore(state => state.setGatesVisible);
   
   // Close on double-click outside or ESC key
   const outsideClickCountRef = useRef(0);
@@ -417,6 +324,8 @@ function SectorsDropdown() {
   
   const handleLayerClick = (layerId: string, e: React.MouseEvent) => {
     e.stopPropagation();
+    // Gates has no sub-options, don't open dropdown
+    if (layerId === 'gates') return;
     if (activeLayer === layerId) {
       setActiveLayer(null);
     } else {
@@ -428,10 +337,23 @@ function SectorsDropdown() {
   
   const handleVisibilityToggle = (layerId: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    setSectorLayerVisible(layerId, !sectorLayers[layerId]?.visible);
+    if (layerId === 'airway') {
+      setAirwaysVisible(!airwaysVisible);
+    } else if (layerId === 'gates') {
+      setGatesVisible(!gatesVisible);
+    } else {
+      setSectorLayerVisible(layerId, !sectorLayers[layerId]?.visible);
+    }
+  };
+  
+  const getLayerVisible = (layerId: string): boolean => {
+    if (layerId === 'airway') return airwaysVisible;
+    if (layerId === 'gates') return gatesVisible;
+    return sectorLayers[layerId]?.visible || false;
   };
   
   const isFirLayer = activeLayer === 'fir_world';
+  const isAirwayLayer = activeLayer === 'airway';
   
   const layerOptionsDropdown = activeLayer && layerDropdownPos && createPortal(
     <div 
@@ -444,7 +366,7 @@ function SectorsDropdown() {
         zIndex: 1000000
       }}
     >
-      {!isFirLayer && (
+      {!isFirLayer && !isAirwayLayer && (
         <div className="sector-option-row">
           <label>Show Labels</label>
           <input 
@@ -454,7 +376,7 @@ function SectorsDropdown() {
           />
         </div>
       )}
-      {!isFirLayer && (
+      {!isFirLayer && !isAirwayLayer && (
         <div className="sector-option-row">
           <label>Show Fill</label>
           <input 
@@ -472,11 +394,11 @@ function SectorsDropdown() {
             min="0.1"
             max="0.8"
             step="0.1"
-            value={sectorLayers[activeLayer]?.opacity || 0.4}
-            onChange={(e) => setSectorLayerOpacity(activeLayer, parseFloat(e.target.value))}
+            value={isAirwayLayer ? airwayOpacity : (sectorLayers[activeLayer]?.opacity || 0.4)}
+            onChange={(e) => isAirwayLayer ? setAirwayOpacity(parseFloat(e.target.value)) : setSectorLayerOpacity(activeLayer, parseFloat(e.target.value))}
             className="opacity-slider"
           />
-          <span className="opacity-value">{((sectorLayers[activeLayer]?.opacity || 0.4) * 100).toFixed(0)}%</span>
+          <span className="opacity-value">{((isAirwayLayer ? airwayOpacity : (sectorLayers[activeLayer]?.opacity || 0.4)) * 100).toFixed(0)}%</span>
         </div>
       </div>
     </div>,
@@ -506,9 +428,9 @@ function SectorsDropdown() {
               {layer.label}
             </div>
             <div 
-              className={`sector-visibility-box ${sectorLayers[layer.id]?.visible ? 'visible' : ''}`}
+              className={`sector-visibility-box ${getLayerVisible(layer.id) ? 'visible' : ''}`}
               onClick={(e) => handleVisibilityToggle(layer.id, e)}
-              title={sectorLayers[layer.id]?.visible ? 'Hide' : 'Show'}
+              title={getLayerVisible(layer.id) ? 'Hide' : 'Show'}
             />
           </div>
         ))}
@@ -730,9 +652,6 @@ function Timeline() {
   const isDraggingRef = useRef(false);
   
   const timeline = useFlightStore(state => state.timeline);
-  const flights = useFlightStore(state => state.flights);
-  const flightMeta = useFlightStore(state => state.flightMeta);
-  
   const { seekTo } = useAnimation();
   
   const progress = useMemo(() => {
@@ -740,27 +659,8 @@ function Timeline() {
     return ((timeline.current - timeline.start) / (timeline.end - timeline.start)) * 100;
   }, [timeline]);
   
-  const flightMarkers = useMemo(() => {
-    const visibleKeys = Object.entries(flightMeta)
-      .filter(([_, meta]) => meta.visible)
-      .map(([key]) => key);
-    
-    const markers = visibleKeys
-      .map(key => {
-        const points = flights[key];
-        if (!points || points.length === 0) return null;
-        return { key, startTime: points[0].t, color: flightMeta[key].color };
-      })
-      .filter(Boolean)
-      .sort((a, b) => a!.startTime - b!.startTime);
-    
-    const maxMarkers = 100;
-    const step = Math.max(1, Math.floor(markers.length / maxMarkers));
-    return markers.filter((_, i) => i % step === 0);
-  }, [flights, flightMeta]);
-  
   const handleTimelineClick = useCallback((e: React.MouseEvent) => {
-    if (!timelineRef.current || (e.target as HTMLElement).classList.contains('flight-marker')) return;
+    if (!timelineRef.current) return;
     const rect = timelineRef.current.getBoundingClientRect();
     const ratio = (e.clientX - rect.left) / rect.width;
     seekTo(timeline.start + ratio * (timeline.end - timeline.start));
@@ -794,21 +694,6 @@ function Timeline() {
             style={{ left: `${progress}%` }}
             onMouseDown={() => isDraggingRef.current = true}
           />
-          {flightMarkers.map((marker) => {
-            if (!marker) return null;
-            const pos = ((marker.startTime - timeline.start) / (timeline.end - timeline.start)) * 100;
-            if (pos < 0 || pos > 100) return null;
-            return (
-              <div
-                key={marker.key}
-                className="flight-marker"
-                style={{ left: `${pos}%`, background: marker.color }}
-                onClick={(e) => { e.stopPropagation(); seekTo(marker.startTime); }}
-              >
-                <div className="flight-marker-tooltip">{marker.key}</div>
-              </div>
-            );
-          })}
         </div>
       </div>
     </div>
@@ -2123,9 +2008,9 @@ function FlightMap({ lightMode, satelliteMode }: { lightMode: boolean; satellite
       <BACCLayer />
       <CTRLayer />
       <FIRLayer />
-      <BACCSubsectorLayer />
       <PDRLayer />
       <TMALayer />
+      <FlightTagsLayer />
     </MapContainer>
   );
 }

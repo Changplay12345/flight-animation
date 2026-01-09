@@ -143,7 +143,7 @@ export function BACCLayer() {
         const name = feature.properties.name;
         return {
           fillColor: getSectorColor(name),
-          weight: 2,
+          weight: 1,  // LINE WIDTH: Adjust this value to change line thickness
           opacity: 1,
           color: getBorderColor(),
           fillOpacity: baccFillVisible ? baccOpacity : 0,

@@ -93,7 +93,7 @@ export function TMALayer() {
     geoJsonLayerRef.current = L.geoJSON(geoDataRef.current as any, {
       style: () => ({
         fillColor: getColor(),
-        weight: 2,
+        weight: 1,  // LINE WIDTH: Adjust this value to change line thickness
         opacity: 1,
         color: getBorderColor(),
         fillOpacity: fillVisible ? opacity : 0,

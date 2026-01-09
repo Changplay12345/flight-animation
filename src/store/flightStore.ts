@@ -64,6 +64,9 @@ interface FlightStore {
   // Gates
   gatesVisible: boolean;
   
+  // Tags (flight key labels)
+  tagsVisible: boolean;
+  
   // Airway Panel
   selectedAirway: string | null;
   airwayOpacity: number;
@@ -106,6 +109,7 @@ interface FlightStore {
   setUiHidden: (hidden: boolean) => void;
   setAirwaysVisible: (visible: boolean) => void;
   setGatesVisible: (visible: boolean) => void;
+  setTagsVisible: (visible: boolean) => void;
   setSelectedAirway: (route: string | null) => void;
   setAirwayOpacity: (opacity: number) => void;
   setAirwayPanelOpen: (open: boolean) => void;
@@ -157,6 +161,7 @@ export const useFlightStore = create<FlightStore>((set, get) => ({
   uiHidden: false,
   airwaysVisible: false,
   gatesVisible: false,
+  tagsVisible: false,
   
   // Airway Panel
   selectedAirway: null,
@@ -309,6 +314,8 @@ export const useFlightStore = create<FlightStore>((set, get) => ({
   setAirwaysVisible: (visible) => set({ airwaysVisible: visible }),
   
   setGatesVisible: (visible) => set({ gatesVisible: visible }),
+  
+  setTagsVisible: (visible) => set({ tagsVisible: visible }),
   
   setSelectedAirway: (route) => set({ selectedAirway: route, airwayPanelOpen: !!route }),
   setAirwayOpacity: (opacity) => set({ airwayOpacity: opacity }),
