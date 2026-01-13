@@ -75,6 +75,11 @@ interface FlightStore {
   airwayVorVisible: boolean;
   airwayReportingVisible: boolean;
   
+  // SID (Standard Instrument Departure)
+  sidVisible: boolean;
+  sidWaypointsVisible: boolean;
+  sidOpacity: number;
+  
   // Sector Layers (bacc, ctr, fir_world, bacc_subsector, pdr, tma)
   sectorLayers: Record<string, {
     visible: boolean;
@@ -119,6 +124,9 @@ interface FlightStore {
   setAirwayLabelsVisible: (visible: boolean) => void;
   setAirwayVorVisible: (visible: boolean) => void;
   setAirwayReportingVisible: (visible: boolean) => void;
+  setSidVisible: (visible: boolean) => void;
+  setSidWaypointsVisible: (visible: boolean) => void;
+  setSidOpacity: (opacity: number) => void;
   
   setSectorLayerVisible: (layer: string, visible: boolean) => void;
   setSectorLayerLabels: (layer: string, visible: boolean) => void;
@@ -176,6 +184,11 @@ export const useFlightStore = create<FlightStore>((set, get) => ({
   airwayLabelsVisible: false,
   airwayVorVisible: false,
   airwayReportingVisible: false,
+  
+  // SID
+  sidVisible: false,
+  sidWaypointsVisible: false,
+  sidOpacity: 0.7,
   
   // Sector Layers
   sectorLayers: {
@@ -332,6 +345,9 @@ export const useFlightStore = create<FlightStore>((set, get) => ({
   setAirwayLabelsVisible: (visible) => set({ airwayLabelsVisible: visible }),
   setAirwayVorVisible: (visible) => set({ airwayVorVisible: visible }),
   setAirwayReportingVisible: (visible) => set({ airwayReportingVisible: visible }),
+  setSidVisible: (visible) => set({ sidVisible: visible }),
+  setSidWaypointsVisible: (visible) => set({ sidWaypointsVisible: visible }),
+  setSidOpacity: (opacity) => set({ sidOpacity: opacity }),
   
   setSectorLayerVisible: (layer, visible) => set(state => ({
     sectorLayers: { ...state.sectorLayers, [layer]: { ...state.sectorLayers[layer], visible } }

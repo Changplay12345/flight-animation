@@ -2312,3 +2312,101 @@ body.light-mode .airway-option-row input[type="checkbox"] {
   background: transparent !important;
   border: none !important;
 }
+
+/* SID Dropdown */
+.sid-dropdown {
+  background: #1a1a2e;
+  border: 1px solid #3d3d5c;
+  border-radius: 6px;
+  padding: 8px;
+  min-width: 140px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+
+.sid-option-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.sid-option-row:hover {
+  background: rgba(255,255,255,0.05);
+}
+
+.sid-option-label {
+  color: #fff;
+  font-size: 12px;
+  user-select: none;
+  cursor: pointer;
+}
+
+.sid-option-row input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  accent-color: #ff4081;
+}
+
+body.light-mode .sid-dropdown {
+  background: #fff;
+  border-color: #ddd;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+body.light-mode .sid-option-row:hover {
+  background: rgba(0,0,0,0.05);
+}
+
+body.light-mode .sid-option-label {
+  color: #333;
+}
+
+body.light-mode .sid-option-row input[type="checkbox"] {
+  accent-color: #c2185b;
+}
+
+/* SID Waypoints */
+.sid-waypoint {
+  background: transparent !important;
+  border: none !important;
+}
+
+#btn-sid {
+  background: #2d2d44;
+  color: #fff;
+  border: 1px solid #3d3d5c;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  transition: all 0.2s;
+}
+
+#btn-sid:hover {
+  background: #3d3d5c;
+}
+
+#btn-sid.active {
+  background: #ff4081;
+  color: #fff;
+  border-color: #ff4081;
+}
+
+body.light-mode #btn-sid {
+  background: #f0f0f0;
+  color: #333;
+  border-color: #ccc;
+}
+
+body.light-mode #btn-sid:hover {
+  background: #e0e0e0;
+}
+
+body.light-mode #btn-sid.active {
+  background: #c2185b;
+  color: #fff;
+  border-color: #c2185b;
+}

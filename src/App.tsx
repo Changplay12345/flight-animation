@@ -15,6 +15,7 @@ import { FIRLayer } from './components/FIRLayer';
 import { PDRLayer } from './components/PDRLayer';
 import { TMALayer } from './components/TMALayer';
 import { FlightTagsLayer } from './components/FlightTagsLayer';
+import { SidLayer } from './components/SidLayer';
 import { useAnimation } from './hooks/useAnimation';
 import 'leaflet/dist/leaflet.css';
 
@@ -194,6 +195,7 @@ function Toolbar() {
       <TrailDecayControl />
       <SectorsDropdown />
       <AirwayDropdown />
+      <SidDropdown />
       <button 
         id="btn-gates" 
         title="Toggle Airport Gates"
@@ -254,6 +256,8 @@ function AirwayDropdown() {
   const setAirwayVorVisible = useFlightStore(state => state.setAirwayVorVisible);
   const airwayReportingVisible = useFlightStore(state => state.airwayReportingVisible);
   const setAirwayReportingVisible = useFlightStore(state => state.setAirwayReportingVisible);
+  const airwayOpacity = useFlightStore(state => state.airwayOpacity);
+  const setAirwayOpacity = useFlightStore(state => state.setAirwayOpacity);
   const uiHidden = useFlightStore(state => state.uiHidden);
 
   const handleToggle = () => {
@@ -359,6 +363,21 @@ function AirwayDropdown() {
           onChange={(e) => setAirwayReportingVisible(e.target.checked)}
         />
       </div>
+      <div className="airway-option-row" style={{ flexDirection: 'column', alignItems: 'stretch' }}>
+        <span className="airway-option-label">Opacity</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px' }}>
+          <input
+            type="range"
+            min="0.1"
+            max="1"
+            step="0.1"
+            value={airwayOpacity}
+            onChange={(e) => setAirwayOpacity(parseFloat(e.target.value))}
+            style={{ flex: 1 }}
+          />
+          <span style={{ fontSize: '11px', color: '#888', minWidth: '32px' }}>{(airwayOpacity * 100).toFixed(0)}%</span>
+        </div>
+      </div>
     </div>,
     document.body
   );
@@ -373,6 +392,125 @@ function AirwayDropdown() {
         onClick={handleToggle}
       >
         ✈️ Airway
+      </button>
+      {dropdownContent}
+    </>
+  );
+}
+
+// ============== SID Dropdown ==============
+function SidDropdown() {
+  const [isOpen, setIsOpen] = useState(false);
+  const [dropdownPos, setDropdownPos] = useState<{ top: number; left: number } | null>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  
+  const sidVisible = useFlightStore(state => state.sidVisible);
+  const setSidVisible = useFlightStore(state => state.setSidVisible);
+  const sidWaypointsVisible = useFlightStore(state => state.sidWaypointsVisible);
+  const setSidWaypointsVisible = useFlightStore(state => state.setSidWaypointsVisible);
+  const sidOpacity = useFlightStore(state => state.sidOpacity);
+  const setSidOpacity = useFlightStore(state => state.setSidOpacity);
+  const uiHidden = useFlightStore(state => state.uiHidden);
+
+  const handleToggle = () => {
+    if (!isOpen && buttonRef.current) {
+      const rect = buttonRef.current.getBoundingClientRect();
+      setDropdownPos({ top: rect.bottom + 4, left: rect.left });
+    }
+    setIsOpen(!isOpen);
+  };
+
+  useEffect(() => {
+    if (!isOpen) return;
+    
+    const handleClickOutside = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node) &&
+          buttonRef.current && !buttonRef.current.contains(e.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setIsOpen(false);
+    };
+    
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleEsc);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleEsc);
+    };
+  }, [isOpen]);
+
+  if (uiHidden) return null;
+
+  const dropdownContent = isOpen && dropdownPos && createPortal(
+    <div 
+      ref={dropdownRef}
+      className="sid-dropdown"
+      style={{ 
+        position: 'fixed',
+        top: dropdownPos.top,
+        left: dropdownPos.left,
+        zIndex: 999999
+      }}
+    >
+      <div className="sid-option-row">
+        <span 
+          className="sid-option-label"
+          onClick={() => setSidVisible(!sidVisible)}
+        >
+          SID Routes
+        </span>
+        <input 
+          type="checkbox" 
+          checked={sidVisible} 
+          onChange={(e) => setSidVisible(e.target.checked)}
+        />
+      </div>
+      <div className="sid-option-row">
+        <span 
+          className="sid-option-label"
+          onClick={() => setSidWaypointsVisible(!sidWaypointsVisible)}
+        >
+          Waypoints
+        </span>
+        <input 
+          type="checkbox" 
+          checked={sidWaypointsVisible} 
+          onChange={(e) => setSidWaypointsVisible(e.target.checked)}
+        />
+      </div>
+      <div className="sid-option-row" style={{ flexDirection: 'column', alignItems: 'stretch' }}>
+        <span className="sid-option-label">Opacity</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px' }}>
+          <input
+            type="range"
+            min="0.1"
+            max="1"
+            step="0.1"
+            value={sidOpacity}
+            onChange={(e) => setSidOpacity(parseFloat(e.target.value))}
+            style={{ flex: 1 }}
+          />
+          <span style={{ fontSize: '11px', color: '#888', minWidth: '32px' }}>{(sidOpacity * 100).toFixed(0)}%</span>
+        </div>
+      </div>
+    </div>,
+    document.body
+  );
+
+  return (
+    <>
+      <button 
+        ref={buttonRef}
+        id="btn-sid" 
+        title="SID Options"
+        className={isOpen || sidVisible ? 'active' : ''}
+        onClick={handleToggle}
+      >
+        🛫 SID
       </button>
       {dropdownContent}
     </>
@@ -2147,6 +2285,7 @@ function FlightMap({ lightMode, satelliteMode }: { lightMode: boolean; satellite
       <FlightRenderer />
       <AirportLayer />
       <AirwayLayer />
+      <SidLayer />
       <GateLayer />
       <BACCLayer />
       <CTRLayer />

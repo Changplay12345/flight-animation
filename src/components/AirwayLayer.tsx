@@ -212,7 +212,8 @@ export function AirwayLayer() {
       const icon = L.divIcon({
         className: 'airway-label',
         html: `<div style="
-          transform: rotate(${angle}deg);
+          transform: rotate(${angle}deg) translateY(-12px);
+          transform-origin: center center;
           font-size: 9px;
           font-weight: 600;
           color: ${textColor};
@@ -221,6 +222,7 @@ export function AirwayLayer() {
           border-radius: 2px;
           white-space: nowrap;
           pointer-events: none;
+          text-align: center;
         ">${routeId}</div>`,
         iconSize: [0, 0],
         iconAnchor: [0, 0],
@@ -255,6 +257,10 @@ export function AirwayLayer() {
     const bgColor = lightMode ? 'rgba(255,255,255,0.9)' : 'rgba(0,0,0,0.8)';
     const borderColor = lightMode ? '#1565c0' : '#4fc3f7';
 
+    // Thailand bounds: lat 5.5-20.5, lon 97.5-106
+    const isInThailand = (lon: number, lat: number) => 
+      lat >= 5.5 && lat <= 20.5 && lon >= 97.5 && lon <= 106;
+
     vorData.features.forEach((feature) => {
       const name = feature.properties.waypoint_identifier;
       if (!name) return;
@@ -262,6 +268,7 @@ export function AirwayLayer() {
       if (feature.geometry.type === 'MultiPoint') {
         feature.geometry.coordinates.forEach((coord) => {
           const [lon, lat] = coord;
+          if (!isInThailand(lon, lat)) return;
           
           // VOR symbol: hexagon with dot
           const icon = L.divIcon({
@@ -335,6 +342,10 @@ export function AirwayLayer() {
     const bgColor = lightMode ? 'rgba(255,255,255,0.9)' : 'rgba(0,0,0,0.8)';
     const triangleColor = lightMode ? '#6a1b9a' : '#ce93d8';
 
+    // Thailand bounds: lat 5.5-20.5, lon 97.5-106
+    const isInThailand = (lon: number, lat: number) => 
+      lat >= 5.5 && lat <= 20.5 && lon >= 97.5 && lon <= 106;
+
     reportingData.features.forEach((feature) => {
       const name = feature.properties.waypoint_identifier;
       if (!name) return;
@@ -342,6 +353,7 @@ export function AirwayLayer() {
       if (feature.geometry.type === 'MultiPoint') {
         feature.geometry.coordinates.forEach((coord) => {
           const [lon, lat] = coord;
+          if (!isInThailand(lon, lat)) return;
           
           // Triangle symbol pointing up
           const icon = L.divIcon({
