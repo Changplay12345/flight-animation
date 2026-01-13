@@ -2239,3 +2239,76 @@ body.light-mode #btn-tags.active {
   color: #fff;
   border-color: #1976d2;
 }
+
+/* Airway Dropdown */
+.airway-dropdown {
+  background: #1a1a2e;
+  border: 1px solid #3d3d5c;
+  border-radius: 6px;
+  padding: 8px;
+  min-width: 140px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+
+.airway-option-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.airway-option-row:hover {
+  background: rgba(255,255,255,0.05);
+}
+
+.airway-option-label {
+  color: #fff;
+  font-size: 12px;
+  user-select: none;
+  cursor: pointer;
+}
+
+.airway-option-row input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  accent-color: #00d9ff;
+}
+
+body.light-mode .airway-dropdown {
+  background: #fff;
+  border-color: #ddd;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+body.light-mode .airway-option-row:hover {
+  background: rgba(0,0,0,0.05);
+}
+
+body.light-mode .airway-option-label {
+  color: #333;
+}
+
+body.light-mode .airway-option-row input[type="checkbox"] {
+  accent-color: #1976d2;
+}
+
+/* Airway Labels */
+.airway-label {
+  background: transparent !important;
+  border: none !important;
+}
+
+/* Airway VOR */
+.airway-vor {
+  background: transparent !important;
+  border: none !important;
+}
+
+/* Airway Reporting Points */
+.airway-reporting {
+  background: transparent !important;
+  border: none !important;
+}

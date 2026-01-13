@@ -129,8 +129,6 @@ function Toolbar() {
   const setSatelliteMode = useFlightStore(state => state.setSatelliteMode);
   const tagsVisible = useFlightStore(state => state.tagsVisible);
   const setTagsVisible = useFlightStore(state => state.setTagsVisible);
-  const airwaysVisible = useFlightStore(state => state.airwaysVisible);
-  const setAirwaysVisible = useFlightStore(state => state.setAirwaysVisible);
   const gatesVisible = useFlightStore(state => state.gatesVisible);
   const setGatesVisible = useFlightStore(state => state.setGatesVisible);
   
@@ -195,14 +193,7 @@ function Toolbar() {
       </label>
       <TrailDecayControl />
       <SectorsDropdown />
-      <button 
-        id="btn-airways" 
-        title="Toggle Airways"
-        className={airwaysVisible ? 'active' : ''}
-        onClick={() => setAirwaysVisible(!airwaysVisible)}
-      >
-        ✈️ Airway
-      </button>
+      <AirwayDropdown />
       <button 
         id="btn-gates" 
         title="Toggle Airport Gates"
@@ -245,6 +236,146 @@ function Toolbar() {
       </button>
       <div id="time-display">{timeDisplay}</div>
     </div>
+  );
+}
+
+// ============== Airway Dropdown ==============
+function AirwayDropdown() {
+  const [isOpen, setIsOpen] = useState(false);
+  const [dropdownPos, setDropdownPos] = useState<{ top: number; left: number } | null>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  
+  const airwaysVisible = useFlightStore(state => state.airwaysVisible);
+  const setAirwaysVisible = useFlightStore(state => state.setAirwaysVisible);
+  const airwayLabelsVisible = useFlightStore(state => state.airwayLabelsVisible);
+  const setAirwayLabelsVisible = useFlightStore(state => state.setAirwayLabelsVisible);
+  const airwayVorVisible = useFlightStore(state => state.airwayVorVisible);
+  const setAirwayVorVisible = useFlightStore(state => state.setAirwayVorVisible);
+  const airwayReportingVisible = useFlightStore(state => state.airwayReportingVisible);
+  const setAirwayReportingVisible = useFlightStore(state => state.setAirwayReportingVisible);
+  const uiHidden = useFlightStore(state => state.uiHidden);
+
+  const handleToggle = () => {
+    if (!isOpen && buttonRef.current) {
+      const rect = buttonRef.current.getBoundingClientRect();
+      setDropdownPos({ top: rect.bottom + 4, left: rect.left });
+    }
+    setIsOpen(!isOpen);
+  };
+
+  useEffect(() => {
+    if (!isOpen) return;
+    
+    const handleClickOutside = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node) &&
+          buttonRef.current && !buttonRef.current.contains(e.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setIsOpen(false);
+    };
+    
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleEsc);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleEsc);
+    };
+  }, [isOpen]);
+
+  if (uiHidden) return null;
+
+  const dropdownContent = isOpen && dropdownPos && createPortal(
+    <div 
+      ref={dropdownRef}
+      className="airway-dropdown"
+      style={{ 
+        position: 'fixed',
+        top: dropdownPos.top,
+        left: dropdownPos.left,
+        zIndex: 999999
+      }}
+    >
+      <div className="airway-option-row">
+        <span 
+          className="airway-option-label"
+          role="img"
+          aria-label="Toggle Airways"
+          onClick={() => setAirwaysVisible(!airwaysVisible)}
+        >
+          Airways
+        </span>
+        <input 
+          type="checkbox" 
+          checked={airwaysVisible} 
+          onChange={(e) => setAirwaysVisible(e.target.checked)}
+        />
+      </div>
+      <div className="airway-option-row">
+        <span 
+          className="airway-option-label"
+          role="img"
+          aria-label="Toggle Labels"
+          onClick={() => setAirwayLabelsVisible(!airwayLabelsVisible)}
+        >
+          Labels
+        </span>
+        <input 
+          type="checkbox" 
+          checked={airwayLabelsVisible} 
+          onChange={(e) => setAirwayLabelsVisible(e.target.checked)}
+        />
+      </div>
+      <div className="airway-option-row">
+        <span 
+          className="airway-option-label"
+          role="img"
+          aria-label="Toggle VOR"
+          onClick={() => setAirwayVorVisible(!airwayVorVisible)}
+        >
+          VOR
+        </span>
+        <input 
+          type="checkbox" 
+          checked={airwayVorVisible} 
+          onChange={(e) => setAirwayVorVisible(e.target.checked)}
+        />
+      </div>
+      <div className="airway-option-row">
+        <span 
+          className="airway-option-label"
+          role="img"
+          aria-label="Toggle Reporting Points"
+          onClick={() => setAirwayReportingVisible(!airwayReportingVisible)}
+        >
+          Reporting
+        </span>
+        <input 
+          type="checkbox" 
+          checked={airwayReportingVisible} 
+          onChange={(e) => setAirwayReportingVisible(e.target.checked)}
+        />
+      </div>
+    </div>,
+    document.body
+  );
+
+  return (
+    <>
+      <button 
+        ref={buttonRef}
+        id="btn-airways" 
+        title="Airway Options"
+        className={isOpen || airwaysVisible ? 'active' : ''}
+        onClick={handleToggle}
+      >
+        ✈️ Airway
+      </button>
+      {dropdownContent}
+    </>
   );
 }
 
