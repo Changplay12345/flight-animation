@@ -23,6 +23,7 @@ interface SidWaypointFeature {
     altitude_description: string | null;
     altitude1: number | null;
     altitude2: number | null;
+    airport_identifier?: string;
   };
   geometry: {
     type: string;
@@ -40,9 +41,8 @@ interface SidWaypointGeoJSON {
   features: SidWaypointFeature[];
 }
 
-// Thailand bounds
-const isInThailand = (lon: number, lat: number) => 
-  lat >= 5.5 && lat <= 20.5 && lon >= 97.5 && lon <= 106;
+// Thailand airport prefix
+const isThailandAirport = (airportId: string) => airportId?.startsWith('VT');
 
 export function SidLayer() {
   const map = useMap();
@@ -57,34 +57,34 @@ export function SidLayer() {
   const [lineData, setLineData] = useState<SidLineGeoJSON | null>(null);
   const [waypointData, setWaypointData] = useState<SidWaypointGeoJSON | null>(null);
 
-  // Load GeoJSON data once
+  // Load GeoJSON data once - use Thailand-specific files
   useEffect(() => {
     fetch('/sidline.geojson')
       .then(res => res.json())
       .then(data => setLineData(data))
       .catch(err => console.error('Failed to load SID lines:', err));
       
-    fetch('/sod_waypoint.geojson')
+    fetch('/sid_waypoint_thai.geojson')
       .then(res => res.json())
       .then(data => setWaypointData(data))
       .catch(err => console.error('Failed to load SID waypoints:', err));
   }, []);
 
-  // Create custom panes
+  // Create custom panes - waypoints ABOVE lines
   useEffect(() => {
     if (!map.getPane('sidLinePane')) {
       map.createPane('sidLinePane');
       const pane = map.getPane('sidLinePane');
-      if (pane) pane.style.zIndex = '360';
+      if (pane) pane.style.zIndex = '355';
     }
     if (!map.getPane('sidWaypointPane')) {
       map.createPane('sidWaypointPane');
       const pane = map.getPane('sidWaypointPane');
-      if (pane) pane.style.zIndex = '361';
+      if (pane) pane.style.zIndex = '365';
     }
   }, [map]);
 
-  // Render SID lines (pink/red polylines with glow)
+  // Render SID lines (thin pink/red polylines)
   useEffect(() => {
     lineLayersRef.current.forEach(layer => {
       if (map.hasLayer(layer)) map.removeLayer(layer);
@@ -96,28 +96,27 @@ export function SidLayer() {
     const lineColor = lightMode ? '#c2185b' : '#ff4081';
 
     lineData.features.forEach((feature) => {
+      // Only show Thailand airports (VT prefix)
+      if (!isThailandAirport(feature.properties.airport_identifier)) return;
+      
       if (feature.geometry.type === 'MultiLineString') {
         feature.geometry.coordinates.forEach((lineCoords) => {
-          // Check if any point is in Thailand
-          const hasThailandPoint = lineCoords.some(coord => isInThailand(coord[0], coord[1]));
-          if (!hasThailandPoint) return;
-
           const latlngs: [number, number][] = lineCoords.map(coord => [coord[1], coord[0]]);
           
-          // Glow effect - wider, more transparent line behind
+          // Subtle glow effect
           const glowLine = L.polyline(latlngs, {
             color: lineColor,
-            weight: 4,
-            opacity: sidOpacity * 0.3,
+            weight: 2.5,
+            opacity: sidOpacity * 0.25,
             pane: 'sidLinePane',
           });
           glowLine.addTo(map);
           lineLayersRef.current.push(glowLine);
           
-          // Main line
+          // Main thin line
           const polyline = L.polyline(latlngs, {
             color: lineColor,
-            weight: 1.5,
+            weight: 1,
             opacity: sidOpacity,
             pane: 'sidLinePane',
           });
@@ -162,7 +161,6 @@ export function SidLayer() {
         feature.geometry.coordinates.forEach((coord) => {
           if (coord.length < 2) return;
           const [lon, lat] = coord;
-          if (!isInThailand(lon, lat)) return;
           
           processedWaypoints.add(waypointKey);
           
@@ -180,7 +178,7 @@ export function SidLayer() {
             }
           }
           
-          // Yellow 4-point star symbol
+          // Yellow 4-point star symbol with clear label
           const icon = L.divIcon({
             className: 'sid-waypoint',
             html: `<div style="
@@ -190,8 +188,8 @@ export function SidLayer() {
               pointer-events: none;
             ">
               <div style="
-                width: 12px;
-                height: 12px;
+                width: 10px;
+                height: 10px;
                 position: relative;
               ">
                 <div style="
@@ -199,56 +197,58 @@ export function SidLayer() {
                   top: 50%;
                   left: 50%;
                   transform: translate(-50%, -50%);
-                  width: 12px;
+                  width: 10px;
                   height: 2px;
                   background: ${starColor};
-                  border: 0.5px solid rgba(0,0,0,0.5);
+                  box-shadow: 0 0 2px rgba(0,0,0,0.8);
                 "></div>
                 <div style="
                   position: absolute;
                   top: 50%;
                   left: 50%;
                   transform: translate(-50%, -50%) rotate(90deg);
-                  width: 12px;
+                  width: 10px;
                   height: 2px;
                   background: ${starColor};
-                  border: 0.5px solid rgba(0,0,0,0.5);
+                  box-shadow: 0 0 2px rgba(0,0,0,0.8);
                 "></div>
                 <div style="
                   position: absolute;
                   top: 50%;
                   left: 50%;
                   transform: translate(-50%, -50%) rotate(45deg);
-                  width: 8px;
+                  width: 6px;
                   height: 2px;
                   background: ${starColor};
-                  border: 0.5px solid rgba(0,0,0,0.5);
+                  box-shadow: 0 0 2px rgba(0,0,0,0.8);
                 "></div>
                 <div style="
                   position: absolute;
                   top: 50%;
                   left: 50%;
                   transform: translate(-50%, -50%) rotate(-45deg);
-                  width: 8px;
+                  width: 6px;
                   height: 2px;
                   background: ${starColor};
-                  border: 0.5px solid rgba(0,0,0,0.5);
+                  box-shadow: 0 0 2px rgba(0,0,0,0.8);
                 "></div>
               </div>
               <div style="
-                font-size: 8px;
-                font-weight: 600;
+                font-size: 9px;
+                font-weight: 700;
                 color: ${textColor};
                 background: ${bgColor};
-                padding: 0px 3px;
+                padding: 1px 4px;
                 border-radius: 2px;
-                margin-top: 2px;
+                margin-top: 3px;
                 white-space: nowrap;
                 text-transform: uppercase;
-              ">${name}${altitudeText ? `<br/><span style="font-size: 7px; color: ${textColor};">${altitudeText}</span>` : ''}</div>
+                text-shadow: 0 0 2px rgba(0,0,0,0.5);
+                border: 1px solid ${lightMode ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.1)'};
+              ">${name}${altitudeText ? `<br/><span style="font-size: 8px; color: ${textColor};">${altitudeText}</span>` : ''}</div>
             </div>`,
             iconSize: [0, 0],
-            iconAnchor: [6, 6],
+            iconAnchor: [5, 5],
           });
           
           const marker = L.marker([lat, lon], { 
