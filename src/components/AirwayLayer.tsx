@@ -254,8 +254,8 @@ export function AirwayLayer() {
     if (!airwaysVisible || !airwayVorVisible || !vorData) return;
 
     const textColor = lightMode ? '#1565c0' : '#4fc3f7';
-    const bgColor = lightMode ? 'rgba(255,255,255,0.9)' : 'rgba(0,0,0,0.8)';
     const borderColor = lightMode ? '#1565c0' : '#4fc3f7';
+    const bgColor = lightMode ? 'rgba(255,255,255,0.9)' : 'rgba(0,0,0,0.8)';
 
     // Thailand bounds: lat 5.5-20.5, lon 97.5-106
     const isInThailand = (lon: number, lat: number) => 
@@ -300,11 +300,9 @@ export function AirwayLayer() {
                 font-size: 8px;
                 font-weight: 600;
                 color: ${textColor};
-                background: ${bgColor};
-                padding: 0px 3px;
-                border-radius: 2px;
                 margin-top: 2px;
                 white-space: nowrap;
+                text-shadow: -1px -1px 0 ${lightMode ? '#fff' : '#000'}, 1px -1px 0 ${lightMode ? '#fff' : '#000'}, -1px 1px 0 ${lightMode ? '#fff' : '#000'}, 1px 1px 0 ${lightMode ? '#fff' : '#000'}, 0 0 3px ${lightMode ? '#fff' : '#000'};
               ">${name}</div>
             </div>`,
             iconSize: [0, 0],
@@ -339,7 +337,6 @@ export function AirwayLayer() {
     if (!airwaysVisible || !airwayReportingVisible || !reportingData) return;
 
     const textColor = lightMode ? '#6a1b9a' : '#ce93d8';
-    const bgColor = lightMode ? 'rgba(255,255,255,0.9)' : 'rgba(0,0,0,0.8)';
     const triangleColor = lightMode ? '#6a1b9a' : '#ce93d8';
 
     // Thailand bounds: lat 5.5-20.5, lon 97.5-106
@@ -375,11 +372,9 @@ export function AirwayLayer() {
                 font-size: 8px;
                 font-weight: 600;
                 color: ${textColor};
-                background: ${bgColor};
-                padding: 0px 3px;
-                border-radius: 2px;
                 margin-top: 2px;
                 white-space: nowrap;
+                text-shadow: -1px -1px 0 ${lightMode ? '#fff' : '#000'}, 1px -1px 0 ${lightMode ? '#fff' : '#000'}, -1px 1px 0 ${lightMode ? '#fff' : '#000'}, 1px 1px 0 ${lightMode ? '#fff' : '#000'}, 0 0 3px ${lightMode ? '#fff' : '#000'};
               ">${name}</div>
             </div>`,
             iconSize: [0, 0],

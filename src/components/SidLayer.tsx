@@ -238,15 +238,11 @@ export function SidLayer() {
                 font-size: 9px;
                 font-weight: 700;
                 color: ${textColor};
-                background: ${bgColor};
-                padding: 1px 4px;
-                border-radius: 2px;
-                margin-top: 3px;
+                margin-top: 2px;
                 white-space: nowrap;
                 text-transform: uppercase;
-                text-shadow: 0 0 2px rgba(0,0,0,0.5);
-                border: 1px solid ${lightMode ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.1)'};
-              ">${name}${altitudeText ? `<br/><span style="font-size: 8px; color: ${textColor};">${altitudeText}</span>` : ''}</div>
+                text-shadow: -1px -1px 0 ${lightMode ? '#fff' : '#000'}, 1px -1px 0 ${lightMode ? '#fff' : '#000'}, -1px 1px 0 ${lightMode ? '#fff' : '#000'}, 1px 1px 0 ${lightMode ? '#fff' : '#000'}, 0 0 4px ${lightMode ? '#fff' : '#000'};
+              ">${name}${altitudeText ? `<br/><span style="font-size: 8px;">${altitudeText}</span>` : ''}</div>
             </div>`,
             iconSize: [0, 0],
             iconAnchor: [5, 5],
