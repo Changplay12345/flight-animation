@@ -41,7 +41,7 @@ interface SidWaypointGeoJSON {
   features: SidWaypointFeature[];
 }
 
-// Thailand airport prefix
+// Thailand airport prefix only
 const isThailandAirport = (airportId: string) => airportId?.startsWith('VT');
 
 export function SidLayer() {
@@ -57,9 +57,10 @@ export function SidLayer() {
   const [lineData, setLineData] = useState<SidLineGeoJSON | null>(null);
   const [waypointData, setWaypointData] = useState<SidWaypointGeoJSON | null>(null);
 
-  // Load GeoJSON data once - use Thailand-specific files
+  // Load GeoJSON data once - use Thailand-specific file
   useEffect(() => {
-    fetch('/sidline.geojson')
+    // Load Thailand sidline
+    fetch('/sid_line_thai.geojson')
       .then(res => res.json())
       .then(data => setLineData(data))
       .catch(err => console.error('Failed to load SID lines:', err));
