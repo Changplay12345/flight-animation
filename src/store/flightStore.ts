@@ -79,6 +79,28 @@ interface FlightStore {
   sidVisible: boolean;
   sidWaypointsVisible: boolean;
   sidOpacity: number;
+  sidLineWeight: number;
+  
+  // STAR (Standard Terminal Arrival Route)
+  starVisible: boolean;
+  starWaypointsVisible: boolean;
+  starOpacity: number;
+  starLineWeight: number;
+  
+  // PBN (Performance Based Navigation)
+  pbnVisible: boolean;
+  pbnHoldingVisible: boolean;
+  pbnLegsVisible: boolean;
+  pbnWaypointsVisible: boolean;
+  pbnOpacity: number;
+  pbnLineWeight: number;
+  
+  // ILS (Instrument Landing System)
+  ilsVisible: boolean;
+  ilsLegsVisible: boolean;
+  ilsWaypointsVisible: boolean;
+  ilsOpacity: number;
+  ilsLineWeight: number;
   
   // Sector Layers (bacc, ctr, fir_world, bacc_subsector, pdr, tma)
   sectorLayers: Record<string, {
@@ -127,6 +149,25 @@ interface FlightStore {
   setSidVisible: (visible: boolean) => void;
   setSidWaypointsVisible: (visible: boolean) => void;
   setSidOpacity: (opacity: number) => void;
+  setSidLineWeight: (weight: number) => void;
+  
+  setStarVisible: (visible: boolean) => void;
+  setStarWaypointsVisible: (visible: boolean) => void;
+  setStarOpacity: (opacity: number) => void;
+  setStarLineWeight: (weight: number) => void;
+  
+  setPbnVisible: (visible: boolean) => void;
+  setPbnHoldingVisible: (visible: boolean) => void;
+  setPbnLegsVisible: (visible: boolean) => void;
+  setPbnWaypointsVisible: (visible: boolean) => void;
+  setPbnOpacity: (opacity: number) => void;
+  setPbnLineWeight: (weight: number) => void;
+  
+  setIlsVisible: (visible: boolean) => void;
+  setIlsLegsVisible: (visible: boolean) => void;
+  setIlsWaypointsVisible: (visible: boolean) => void;
+  setIlsOpacity: (opacity: number) => void;
+  setIlsLineWeight: (weight: number) => void;
   
   setSectorLayerVisible: (layer: string, visible: boolean) => void;
   setSectorLayerLabels: (layer: string, visible: boolean) => void;
@@ -189,6 +230,28 @@ export const useFlightStore = create<FlightStore>((set, get) => ({
   sidVisible: false,
   sidWaypointsVisible: false,
   sidOpacity: 0.7,
+  sidLineWeight: 1,
+  
+  // STAR
+  starVisible: false,
+  starWaypointsVisible: false,
+  starOpacity: 0.7,
+  starLineWeight: 1,
+  
+  // PBN
+  pbnVisible: false,
+  pbnHoldingVisible: false,
+  pbnLegsVisible: false,
+  pbnWaypointsVisible: false,
+  pbnOpacity: 0.7,
+  pbnLineWeight: 1,
+  
+  // ILS
+  ilsVisible: false,
+  ilsLegsVisible: false,
+  ilsWaypointsVisible: false,
+  ilsOpacity: 0.7,
+  ilsLineWeight: 1,
   
   // Sector Layers
   sectorLayers: {
@@ -348,6 +411,25 @@ export const useFlightStore = create<FlightStore>((set, get) => ({
   setSidVisible: (visible) => set({ sidVisible: visible }),
   setSidWaypointsVisible: (visible) => set({ sidWaypointsVisible: visible }),
   setSidOpacity: (opacity) => set({ sidOpacity: opacity }),
+  setSidLineWeight: (weight) => set({ sidLineWeight: weight }),
+  
+  setStarVisible: (visible) => set({ starVisible: visible }),
+  setStarWaypointsVisible: (visible) => set({ starWaypointsVisible: visible }),
+  setStarOpacity: (opacity) => set({ starOpacity: opacity }),
+  setStarLineWeight: (weight) => set({ starLineWeight: weight }),
+  
+  setPbnVisible: (visible) => set({ pbnVisible: visible }),
+  setPbnHoldingVisible: (visible) => set({ pbnHoldingVisible: visible }),
+  setPbnLegsVisible: (visible) => set({ pbnLegsVisible: visible }),
+  setPbnWaypointsVisible: (visible) => set({ pbnWaypointsVisible: visible }),
+  setPbnOpacity: (opacity) => set({ pbnOpacity: opacity }),
+  setPbnLineWeight: (weight) => set({ pbnLineWeight: weight }),
+  
+  setIlsVisible: (visible) => set({ ilsVisible: visible }),
+  setIlsLegsVisible: (visible) => set({ ilsLegsVisible: visible }),
+  setIlsWaypointsVisible: (visible) => set({ ilsWaypointsVisible: visible }),
+  setIlsOpacity: (opacity) => set({ ilsOpacity: opacity }),
+  setIlsLineWeight: (weight) => set({ ilsLineWeight: weight }),
   
   setSectorLayerVisible: (layer, visible) => set(state => ({
     sectorLayers: { ...state.sectorLayers, [layer]: { ...state.sectorLayers[layer], visible } }

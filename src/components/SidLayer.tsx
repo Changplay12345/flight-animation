@@ -49,6 +49,7 @@ export function SidLayer() {
   const sidVisible = useFlightStore(state => state.sidVisible);
   const sidWaypointsVisible = useFlightStore(state => state.sidWaypointsVisible);
   const sidOpacity = useFlightStore(state => state.sidOpacity);
+  const sidLineWeight = useFlightStore(state => state.sidLineWeight);
   const lightMode = useFlightStore(state => state.lightMode);
   
   const lineLayersRef = useRef<L.Layer[]>([]);
@@ -104,20 +105,10 @@ export function SidLayer() {
         feature.geometry.coordinates.forEach((lineCoords) => {
           const latlngs: [number, number][] = lineCoords.map(coord => [coord[1], coord[0]]);
           
-          // Subtle glow effect
-          const glowLine = L.polyline(latlngs, {
-            color: lineColor,
-            weight: 2.5,
-            opacity: sidOpacity * 0.25,
-            pane: 'sidLinePane',
-          });
-          glowLine.addTo(map);
-          lineLayersRef.current.push(glowLine);
-          
-          // Main thin line
+          // Main line with configurable weight
           const polyline = L.polyline(latlngs, {
             color: lineColor,
-            weight: 1,
+            weight: sidLineWeight,
             opacity: sidOpacity,
             pane: 'sidLinePane',
           });
@@ -132,7 +123,7 @@ export function SidLayer() {
         if (map.hasLayer(layer)) map.removeLayer(layer);
       });
     };
-  }, [sidVisible, lightMode, map, lineData, sidOpacity]);
+  }, [sidVisible, lightMode, map, lineData, sidOpacity, sidLineWeight]);
 
   // Render SID waypoints (yellow 4-point star with labels)
   useEffect(() => {
@@ -145,7 +136,6 @@ export function SidLayer() {
 
     const textColor = lightMode ? '#c2185b' : '#ff80ab';
     const starColor = lightMode ? '#f9a825' : '#ffeb3b';
-    const bgColor = lightMode ? 'rgba(255,255,255,0.9)' : 'rgba(0,0,0,0.8)';
 
     // Track unique waypoints to avoid duplicates
     const processedWaypoints = new Set<string>();
