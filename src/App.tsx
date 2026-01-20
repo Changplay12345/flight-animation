@@ -168,6 +168,8 @@ function Toolbar() {
           <option value="40">x5</option>
           <option value="100">x10</option>
           <option value="200">x20</option>
+          <option value="500">x50</option>
+          <option value="1000">x100</option>
         </select>
       </div>
       <button 
