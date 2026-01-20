@@ -61,12 +61,12 @@ export function IlsLayer() {
 
   // Load GeoJSON data once
   useEffect(() => {
-    fetch('/ils/iap_ils_legs.geojson')
+    fetch('/ils/True ils leg.geojson')
       .then(res => res.json())
       .then(data => setLegsData(data))
       .catch(err => console.error('Failed to load ILS legs:', err));
       
-    fetch('/ils/ils_iaps_waypoint.geojson')
+    fetch('/ils/true ils waypoint.geojson')
       .then(res => res.json())
       .then(data => setWaypointData(data))
       .catch(err => console.error('Failed to load ILS waypoints:', err));
