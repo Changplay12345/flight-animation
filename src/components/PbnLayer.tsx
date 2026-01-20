@@ -67,7 +67,7 @@ export function PbnLayer() {
       .then(data => setLegsData(data))
       .catch(err => console.error('Failed to load PBN legs:', err));
       
-    fetch('/pbn/pbn_iaps_wp.geojson')
+    fetch('/pbn/true pbn wp.geojson')
       .then(res => res.json())
       .then(data => setWaypointData(data))
       .catch(err => console.error('Failed to load PBN waypoints:', err));
@@ -141,6 +141,9 @@ export function PbnLayer() {
     waypointData.features.forEach((feature) => {
       const name = feature.properties.waypoint_identifier;
       if (!name) return;
+      
+      // Filter for Thailand airports only
+      if (feature.properties.airport_identifier && !isThailandAirport(feature.properties.airport_identifier)) return;
       
       const waypointKey = `${name}`;
       if (processedWaypoints.has(waypointKey)) return;
