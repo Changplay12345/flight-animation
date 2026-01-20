@@ -60,12 +60,12 @@ export function StarLayer() {
 
   // Load GeoJSON data once
   useEffect(() => {
-    fetch('/star_line.geojson')
+    fetch('/star/star_line.geojson')
       .then(res => res.json())
       .then(data => setLineData(data))
       .catch(err => console.error('Failed to load STAR lines:', err));
       
-    fetch('/star_waypoint.geojson')
+    fetch('/star/star_waypoint.geojson')
       .then(res => res.json())
       .then(data => setWaypointData(data))
       .catch(err => console.error('Failed to load STAR waypoints:', err));

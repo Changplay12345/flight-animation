@@ -61,7 +61,7 @@ export function PDRLayer() {
 
   // Load GeoJSON data
   useEffect(() => {
-    fetch('/pdr.geojson')
+    fetch('/sectors/pdr.geojson')
       .then(res => res.json())
       .then((data: GeoJSONData) => {
         geoDataRef.current = data;

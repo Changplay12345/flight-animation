@@ -631,8 +631,6 @@ function PbnDropdown() {
   
   const pbnVisible = useFlightStore(state => state.pbnVisible);
   const setPbnVisible = useFlightStore(state => state.setPbnVisible);
-  const pbnHoldingVisible = useFlightStore(state => state.pbnHoldingVisible);
-  const setPbnHoldingVisible = useFlightStore(state => state.setPbnHoldingVisible);
   const pbnLegsVisible = useFlightStore(state => state.pbnLegsVisible);
   const setPbnLegsVisible = useFlightStore(state => state.setPbnLegsVisible);
   const pbnWaypointsVisible = useFlightStore(state => state.pbnWaypointsVisible);
@@ -675,10 +673,6 @@ function PbnDropdown() {
       <div className="pbn-option-row">
         <span className="pbn-option-label" onClick={() => setPbnVisible(!pbnVisible)}>PBN Enable</span>
         <input type="checkbox" checked={pbnVisible} onChange={(e) => setPbnVisible(e.target.checked)} />
-      </div>
-      <div className="pbn-option-row">
-        <span className="pbn-option-label" onClick={() => setPbnHoldingVisible(!pbnHoldingVisible)}>Holding Patterns</span>
-        <input type="checkbox" checked={pbnHoldingVisible} onChange={(e) => setPbnHoldingVisible(e.target.checked)} />
       </div>
       <div className="pbn-option-row">
         <span className="pbn-option-label" onClick={() => setPbnLegsVisible(!pbnLegsVisible)}>IAP Legs</span>
@@ -2473,7 +2467,7 @@ function AirportLayer() {
   // Create divIcon for stable rendering (no flashing on zoom)
   const createAirportIcon = useCallback((isMain: boolean) => {
     const size = isMain ? 28 : 20;
-    const imgSrc = isMain ? '/Main-Air.png' : '/Sub-Air.png';
+    const imgSrc = isMain ? '/assets/Main-Air.png' : '/assets/Sub-Air.png';
     const typeClass = isMain ? 'airport-main' : 'airport-sub';
     return L.divIcon({
       className: `airport-marker-wrapper ${typeClass}`,

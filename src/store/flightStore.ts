@@ -89,7 +89,6 @@ interface FlightStore {
   
   // PBN (Performance Based Navigation)
   pbnVisible: boolean;
-  pbnHoldingVisible: boolean;
   pbnLegsVisible: boolean;
   pbnWaypointsVisible: boolean;
   pbnOpacity: number;
@@ -157,7 +156,6 @@ interface FlightStore {
   setStarLineWeight: (weight: number) => void;
   
   setPbnVisible: (visible: boolean) => void;
-  setPbnHoldingVisible: (visible: boolean) => void;
   setPbnLegsVisible: (visible: boolean) => void;
   setPbnWaypointsVisible: (visible: boolean) => void;
   setPbnOpacity: (opacity: number) => void;
@@ -240,7 +238,6 @@ export const useFlightStore = create<FlightStore>((set, get) => ({
   
   // PBN
   pbnVisible: false,
-  pbnHoldingVisible: false,
   pbnLegsVisible: false,
   pbnWaypointsVisible: false,
   pbnOpacity: 0.7,
@@ -419,7 +416,6 @@ export const useFlightStore = create<FlightStore>((set, get) => ({
   setStarLineWeight: (weight) => set({ starLineWeight: weight }),
   
   setPbnVisible: (visible) => set({ pbnVisible: visible }),
-  setPbnHoldingVisible: (visible) => set({ pbnHoldingVisible: visible }),
   setPbnLegsVisible: (visible) => set({ pbnLegsVisible: visible }),
   setPbnWaypointsVisible: (visible) => set({ pbnWaypointsVisible: visible }),
   setPbnOpacity: (opacity) => set({ pbnOpacity: opacity }),

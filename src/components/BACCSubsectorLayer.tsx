@@ -72,7 +72,7 @@ export function BACCSubsectorLayer() {
 
   // Load GeoJSON data
   useEffect(() => {
-    fetch('/bacc_subsector.geojson')
+    fetch('/sectors/bacc_subsector.geojson')
       .then(res => res.json())
       .then((data: GeoJSONData) => {
         geoDataRef.current = data;

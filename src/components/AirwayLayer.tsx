@@ -75,17 +75,17 @@ export function AirwayLayer() {
 
   // Load GeoJSON data once
   useEffect(() => {
-    fetch('/airwaysegment.geojson')
+    fetch('/airways/airwaysegment.geojson')
       .then(res => res.json())
       .then(data => setGeojsonData(data))
       .catch(err => console.error('Failed to load airway segments:', err));
       
-    fetch('/airway_vor.geojson')
+    fetch('/airways/airway_vor.geojson')
       .then(res => res.json())
       .then(data => setVorData(data))
       .catch(err => console.error('Failed to load airway VOR:', err));
       
-    fetch('/airways_reporting.geojson')
+    fetch('/airways/airways_reporting.geojson')
       .then(res => res.json())
       .then(data => setReportingData(data))
       .catch(err => console.error('Failed to load airways reporting:', err));

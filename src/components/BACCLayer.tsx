@@ -107,7 +107,7 @@ export function BACCLayer() {
 
   // Load GeoJSON data
   useEffect(() => {
-    fetch('/bacc_geo.geojson')
+    fetch('/sectors/bacc_geo.geojson')
       .then(res => res.json())
       .then((data: GeoJSONData) => {
         geoDataRef.current = data;

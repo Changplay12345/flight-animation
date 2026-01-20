@@ -48,34 +48,26 @@ const isThailandAirport = (airportId: string) => airportId?.startsWith('VT');
 export function PbnLayer() {
   const map = useMap();
   const pbnVisible = useFlightStore(state => state.pbnVisible);
-  const pbnHoldingVisible = useFlightStore(state => state.pbnHoldingVisible);
   const pbnLegsVisible = useFlightStore(state => state.pbnLegsVisible);
   const pbnWaypointsVisible = useFlightStore(state => state.pbnWaypointsVisible);
   const pbnOpacity = useFlightStore(state => state.pbnOpacity);
   const pbnLineWeight = useFlightStore(state => state.pbnLineWeight);
   const lightMode = useFlightStore(state => state.lightMode);
   
-  const holdingLayersRef = useRef<L.Layer[]>([]);
   const legsLayersRef = useRef<L.Layer[]>([]);
   const waypointLayersRef = useRef<L.Marker[]>([]);
   
-  const [holdingData, setHoldingData] = useState<PbnGeoJSON | null>(null);
   const [legsData, setLegsData] = useState<PbnGeoJSON | null>(null);
   const [waypointData, setWaypointData] = useState<PbnWaypointGeoJSON | null>(null);
 
   // Load GeoJSON data once
   useEffect(() => {
-    fetch('/iap_pbn_holding_leg.geojson')
-      .then(res => res.json())
-      .then(data => setHoldingData(data))
-      .catch(err => console.error('Failed to load PBN holding:', err));
-      
-    fetch('/iap_legs.geojson')
+    fetch('/pbn/iap_legs.geojson')
       .then(res => res.json())
       .then(data => setLegsData(data))
       .catch(err => console.error('Failed to load PBN legs:', err));
       
-    fetch('/pbn_iaps_wp.geojson')
+    fetch('/pbn/pbn_iaps_wp.geojson')
       .then(res => res.json())
       .then(data => setWaypointData(data))
       .catch(err => console.error('Failed to load PBN waypoints:', err));
@@ -95,44 +87,7 @@ export function PbnLayer() {
     }
   }, [map]);
 
-  // Render PBN holding patterns (orange color)
-  useEffect(() => {
-    holdingLayersRef.current.forEach(layer => {
-      if (map.hasLayer(layer)) map.removeLayer(layer);
-    });
-    holdingLayersRef.current = [];
-
-    if (!pbnVisible || !pbnHoldingVisible || !holdingData) return;
-
-    const lineColor = lightMode ? '#e65100' : '#ff9800';
-
-    holdingData.features.forEach((feature) => {
-      if (!isThailandAirport(feature.properties.airport_identifier)) return;
-      
-      if (feature.geometry.type === 'MultiLineString') {
-        (feature.geometry.coordinates as number[][][]).forEach((lineCoords) => {
-          const latlngs: [number, number][] = lineCoords.map(coord => [coord[1], coord[0]]);
-          
-          const polyline = L.polyline(latlngs, {
-            color: lineColor,
-            weight: pbnLineWeight,
-            opacity: pbnOpacity,
-            pane: 'pbnLinePane',
-          });
-          polyline.addTo(map);
-          holdingLayersRef.current.push(polyline);
-        });
-      }
-    });
-
-    return () => {
-      holdingLayersRef.current.forEach(layer => {
-        if (map.hasLayer(layer)) map.removeLayer(layer);
-      });
-    };
-  }, [pbnVisible, pbnHoldingVisible, lightMode, map, holdingData, pbnOpacity, pbnLineWeight]);
-
-  // Render PBN legs (orange color, slightly different shade)
+  // Render PBN legs (orange color)
   useEffect(() => {
     legsLayersRef.current.forEach(layer => {
       if (map.hasLayer(layer)) map.removeLayer(layer);

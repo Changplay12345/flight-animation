@@ -74,7 +74,7 @@ export function FIRLayer() {
 
   // Load GeoJSON data and filter to Thailand region
   useEffect(() => {
-    fetch('/fir.geojson')
+    fetch('/sectors/fir.geojson')
       .then(res => res.json())
       .then((data: GeoJSONData) => {
         // Filter features to only include Thailand and neighbors

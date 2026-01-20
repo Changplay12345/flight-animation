@@ -61,7 +61,7 @@ export function TMALayer() {
 
   // Load GeoJSON data
   useEffect(() => {
-    fetch('/tma.geojson')
+    fetch('/sectors/tma.geojson')
       .then(res => res.json())
       .then((data: GeoJSONData) => {
         geoDataRef.current = data;

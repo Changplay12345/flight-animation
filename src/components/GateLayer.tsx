@@ -34,7 +34,7 @@ export function GateLayer() {
 
   // Load GeoJSON data once
   useEffect(() => {
-    fetch('/gateway.geojson')
+    fetch('/airports/gateway.geojson')
       .then(res => res.json())
       .then(data => setGeojsonData(data))
       .catch(err => console.error('Failed to load gates:', err));

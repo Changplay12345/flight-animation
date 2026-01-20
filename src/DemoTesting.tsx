@@ -54,7 +54,7 @@ export default function DemoTesting() {
   const [geoData, setGeoData] = useState<GeoJSONData | null>(null);
 
   useEffect(() => {
-    fetch('/bacc_geo.geojson')
+    fetch('/sectors/bacc_geo.geojson')
       .then((res) => res.json())
       .then((data) => setGeoData(data))
       .catch((err) => console.error('Failed to load BACC GeoJSON:', err));

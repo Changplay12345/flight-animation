@@ -61,12 +61,12 @@ export function SidLayer() {
   // Load GeoJSON data once - use Thailand-specific file
   useEffect(() => {
     // Load Thailand sidline
-    fetch('/sid_line_thai.geojson')
+    fetch('/sid/sid_line_thai.geojson')
       .then(res => res.json())
       .then(data => setLineData(data))
       .catch(err => console.error('Failed to load SID lines:', err));
       
-    fetch('/sid_waypoint_thai.geojson')
+    fetch('/sid/sid_waypoint_thai.geojson')
       .then(res => res.json())
       .then(data => setWaypointData(data))
       .catch(err => console.error('Failed to load SID waypoints:', err));

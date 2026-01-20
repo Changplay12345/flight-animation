@@ -13,7 +13,7 @@ export interface AirwayData {
 
 export async function loadAirways(): Promise<AirwayData> {
   return new Promise((resolve, reject) => {
-    Papa.parse('/airway.csv', {
+    Papa.parse('/airways/airway.csv', {
       download: true,
       header: true,
       complete: (results) => {

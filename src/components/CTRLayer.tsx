@@ -59,7 +59,7 @@ export function CTRLayer() {
 
   // Load GeoJSON data
   useEffect(() => {
-    fetch('/ctr.geojson')
+    fetch('/sectors/ctr.geojson')
       .then(res => res.json())
       .then((data: GeoJSONData) => {
         geoDataRef.current = data;
