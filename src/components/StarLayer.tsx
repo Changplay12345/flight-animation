@@ -24,6 +24,7 @@ interface StarWaypointFeature {
     altitude1: number | null;
     altitude2: number | null;
     airport_identifier?: string;
+    procedure_identifier?: string;
   };
   geometry: {
     type: string;
@@ -51,6 +52,7 @@ export function StarLayer() {
   const starOpacity = useFlightStore(state => state.starOpacity);
   const starLineWeight = useFlightStore(state => state.starLineWeight);
   const starAirportFilter = useFlightStore(state => state.starAirportFilter);
+  const starProcedureFilter = useFlightStore(state => state.starProcedureFilter);
   const lightMode = useFlightStore(state => state.lightMode);
   
   const lineLayersRef = useRef<L.Layer[]>([]);
@@ -98,12 +100,10 @@ export function StarLayer() {
     // Cyan/teal color for STAR (different from SID pink)
     const lineColor = lightMode ? '#00838f' : '#00bcd4';
 
-    // Parse airport filter
-    const filterAirports = starAirportFilter.split(',').map(s => s.trim()).filter(s => s.length > 0);
-    
     lineData.features.forEach((feature) => {
       if (!isThailandAirport(feature.properties.airport_identifier)) return;
-      if (filterAirports.length > 0 && !filterAirports.some(f => feature.properties.airport_identifier.includes(f))) return;
+      if (starAirportFilter.length > 0 && !starAirportFilter.includes(feature.properties.airport_identifier)) return;
+      if (starProcedureFilter.length > 0 && !starProcedureFilter.includes(feature.properties.procedure_identifier)) return;
       
       if (feature.geometry.type === 'MultiLineString') {
         feature.geometry.coordinates.forEach((lineCoords) => {
@@ -126,7 +126,7 @@ export function StarLayer() {
         if (map.hasLayer(layer)) map.removeLayer(layer);
       });
     };
-  }, [starVisible, lightMode, map, lineData, starOpacity, starLineWeight, starAirportFilter]);
+  }, [starVisible, lightMode, map, lineData, starOpacity, starLineWeight, starAirportFilter, starProcedureFilter]);
 
   // Render STAR waypoints
   useEffect(() => {
@@ -141,17 +141,15 @@ export function StarLayer() {
     const textColor = lightMode ? '#00838f' : '#4dd0e1';
     const starColor = lightMode ? '#00acc1' : '#00e5ff';
 
-    // Parse airport filter
-    const filterAirports = starAirportFilter.split(',').map(s => s.trim()).filter(s => s.length > 0);
-
     const processedWaypoints = new Set<string>();
 
     waypointData.features.forEach((feature) => {
       const name = feature.properties.waypoint_identifier;
       if (!name) return;
       
-      // Apply airport filter
-      if (filterAirports.length > 0 && feature.properties.airport_identifier && !filterAirports.some(f => feature.properties.airport_identifier?.includes(f))) return;
+      // Apply airport filter (array-based)
+      if (starAirportFilter.length > 0 && feature.properties.airport_identifier && !starAirportFilter.includes(feature.properties.airport_identifier)) return;
+      if (starProcedureFilter.length > 0 && feature.properties.procedure_identifier && !starProcedureFilter.includes(feature.properties.procedure_identifier)) return;
       
       const waypointKey = `${name}`;
       if (processedWaypoints.has(waypointKey)) return;
@@ -260,7 +258,7 @@ export function StarLayer() {
         if (map.hasLayer(layer)) map.removeLayer(layer);
       });
     };
-  }, [starVisible, starWaypointsVisible, lightMode, map, waypointData, starAirportFilter]);
+  }, [starVisible, starWaypointsVisible, lightMode, map, waypointData, starAirportFilter, starProcedureFilter]);
 
   return null;
 }

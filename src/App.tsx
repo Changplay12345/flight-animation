@@ -817,7 +817,104 @@ function OptionsButton() {
   );
 }
 
+// ============== Multi-Select Dropdown Component ==============
+interface MultiSelectOption {
+  value: string;
+  label: string;
+}
+
+function MultiSelectDropdown({ 
+  options, 
+  selected, 
+  onChange, 
+  placeholder,
+  disabled = false
+}: { 
+  options: MultiSelectOption[]; 
+  selected: string[]; 
+  onChange: (values: string[]) => void;
+  placeholder: string;
+  disabled?: boolean;
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [search, setSearch] = useState('');
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+  
+  const filteredOptions = options.filter(opt => 
+    opt.label.toLowerCase().includes(search.toLowerCase()) ||
+    opt.value.toLowerCase().includes(search.toLowerCase())
+  );
+  
+  const toggleOption = (value: string) => {
+    if (selected.includes(value)) {
+      onChange(selected.filter(v => v !== value));
+    } else {
+      onChange([...selected, value]);
+    }
+  };
+  
+  const selectAll = () => onChange(filteredOptions.map(o => o.value));
+  const clearAll = () => onChange([]);
+  
+  return (
+    <div className={`multi-select-dropdown ${disabled ? 'disabled' : ''}`} ref={dropdownRef}>
+      <div className="multi-select-trigger" onClick={() => !disabled && setIsOpen(!isOpen)}>
+        <span className="multi-select-text">
+          {selected.length === 0 ? placeholder : `${selected.length} selected`}
+        </span>
+        <span className="multi-select-arrow">{isOpen ? '▲' : '▼'}</span>
+      </div>
+      {isOpen && !disabled && (
+        <div className="multi-select-menu">
+          <input
+            type="text"
+            className="multi-select-search"
+            placeholder="Search..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            onClick={(e) => e.stopPropagation()}
+          />
+          <div className="multi-select-actions">
+            <button onClick={selectAll}>Select All</button>
+            <button onClick={clearAll}>Clear</button>
+          </div>
+          <div className="multi-select-options">
+            {filteredOptions.map(opt => (
+              <label key={opt.value} className="multi-select-option">
+                <input
+                  type="checkbox"
+                  checked={selected.includes(opt.value)}
+                  onChange={() => toggleOption(opt.value)}
+                />
+                <span>{opt.label}</span>
+              </label>
+            ))}
+            {filteredOptions.length === 0 && (
+              <div className="multi-select-empty">No options found</div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ============== Options Panel (Chrome-style tabs for SID/STAR/PBN/ILS) ==============
+interface LayerData {
+  airports: string[];
+  procedures: { airport: string; procedure: string }[];
+}
+
 function OptionsPanel() {
   const optionsPanelOpen = useFlightStore(state => state.optionsPanelOpen);
   const setOptionsPanelOpen = useFlightStore(state => state.setOptionsPanelOpen);
@@ -836,6 +933,8 @@ function OptionsPanel() {
   const setSidLineWeight = useFlightStore(state => state.setSidLineWeight);
   const sidAirportFilter = useFlightStore(state => state.sidAirportFilter);
   const setSidAirportFilter = useFlightStore(state => state.setSidAirportFilter);
+  const sidProcedureFilter = useFlightStore(state => state.sidProcedureFilter);
+  const setSidProcedureFilter = useFlightStore(state => state.setSidProcedureFilter);
   
   // STAR state
   const starVisible = useFlightStore(state => state.starVisible);
@@ -848,6 +947,8 @@ function OptionsPanel() {
   const setStarLineWeight = useFlightStore(state => state.setStarLineWeight);
   const starAirportFilter = useFlightStore(state => state.starAirportFilter);
   const setStarAirportFilter = useFlightStore(state => state.setStarAirportFilter);
+  const starProcedureFilter = useFlightStore(state => state.starProcedureFilter);
+  const setStarProcedureFilter = useFlightStore(state => state.setStarProcedureFilter);
   
   // PBN state
   const pbnVisible = useFlightStore(state => state.pbnVisible);
@@ -862,6 +963,8 @@ function OptionsPanel() {
   const setPbnLineWeight = useFlightStore(state => state.setPbnLineWeight);
   const pbnAirportFilter = useFlightStore(state => state.pbnAirportFilter);
   const setPbnAirportFilter = useFlightStore(state => state.setPbnAirportFilter);
+  const pbnProcedureFilter = useFlightStore(state => state.pbnProcedureFilter);
+  const setPbnProcedureFilter = useFlightStore(state => state.setPbnProcedureFilter);
   
   // ILS state
   const ilsVisible = useFlightStore(state => state.ilsVisible);
@@ -876,6 +979,62 @@ function OptionsPanel() {
   const setIlsLineWeight = useFlightStore(state => state.setIlsLineWeight);
   const ilsAirportFilter = useFlightStore(state => state.ilsAirportFilter);
   const setIlsAirportFilter = useFlightStore(state => state.setIlsAirportFilter);
+  const ilsProcedureFilter = useFlightStore(state => state.ilsProcedureFilter);
+  const setIlsProcedureFilter = useFlightStore(state => state.setIlsProcedureFilter);
+
+  // Layer data for dropdowns
+  const [sidData, setSidData] = useState<LayerData>({ airports: [], procedures: [] });
+  const [starData, setStarData] = useState<LayerData>({ airports: [], procedures: [] });
+  const [pbnData, setPbnData] = useState<LayerData>({ airports: [], procedures: [] });
+  const [ilsData, setIlsData] = useState<LayerData>({ airports: [], procedures: [] });
+
+  // Load layer data on mount
+  useEffect(() => {
+    const loadLayerData = async (url: string): Promise<LayerData> => {
+      try {
+        const res = await fetch(url);
+        const data = await res.json();
+        const airports = new Set<string>();
+        const procedures: { airport: string; procedure: string }[] = [];
+        
+        data.features?.forEach((f: { properties: { airport_identifier?: string; procedure_identifier?: string } }) => {
+          const airport = f.properties?.airport_identifier;
+          const procedure = f.properties?.procedure_identifier;
+          if (airport?.startsWith('VT')) {
+            airports.add(airport);
+            if (procedure) {
+              const key = `${airport}-${procedure}`;
+              if (!procedures.some(p => `${p.airport}-${p.procedure}` === key)) {
+                procedures.push({ airport, procedure });
+              }
+            }
+          }
+        });
+        
+        return { 
+          airports: Array.from(airports).sort(), 
+          procedures: procedures.sort((a, b) => a.procedure.localeCompare(b.procedure))
+        };
+      } catch {
+        return { airports: [], procedures: [] };
+      }
+    };
+
+    loadLayerData('/sid/sid_line_thai.geojson').then(setSidData);
+    loadLayerData('/star/star_line.geojson').then(setStarData);
+    loadLayerData('/pbn/true pbn.geojson').then(setPbnData);
+    loadLayerData('/ils/True ils leg.geojson').then(setIlsData);
+  }, []);
+
+  // Get filtered procedures based on selected airports
+  const getFilteredProcedures = (data: LayerData, selectedAirports: string[]) => {
+    if (selectedAirports.length === 0) {
+      return data.procedures.map(p => ({ value: p.procedure, label: `${p.procedure} (${p.airport})` }));
+    }
+    return data.procedures
+      .filter(p => selectedAirports.includes(p.airport))
+      .map(p => ({ value: p.procedure, label: `${p.procedure} (${p.airport})` }));
+  };
 
   if (uiHidden || !optionsPanelOpen) return null;
 
@@ -885,6 +1044,8 @@ function OptionsPanel() {
     { id: 'pbn' as const, label: 'PBN', icon: '📍' },
     { id: 'ils' as const, label: 'ILS', icon: '📻' },
   ];
+
+  const airportOptions = (airports: string[]) => airports.map(a => ({ value: a, label: a }));
 
   return (
     <div id="options-panel">
@@ -917,12 +1078,21 @@ function OptionsPanel() {
               <input type="checkbox" checked={sidWaypointsVisible} onChange={(e) => setSidWaypointsVisible(e.target.checked)} />
             </div>
             <div className="options-row column">
-              <span>Airport Filter</span>
-              <input
-                type="text"
-                placeholder="e.g. VTBS, VTBD..."
-                value={sidAirportFilter}
-                onChange={(e) => setSidAirportFilter(e.target.value.toUpperCase())}
+              <span>Airport</span>
+              <MultiSelectDropdown
+                options={airportOptions(sidData.airports)}
+                selected={sidAirportFilter}
+                onChange={setSidAirportFilter}
+                placeholder="All Airports"
+              />
+            </div>
+            <div className="options-row column">
+              <span>Procedure</span>
+              <MultiSelectDropdown
+                options={getFilteredProcedures(sidData, sidAirportFilter)}
+                selected={sidProcedureFilter}
+                onChange={setSidProcedureFilter}
+                placeholder="All Procedures"
               />
             </div>
             <div className="options-row column">
@@ -953,12 +1123,21 @@ function OptionsPanel() {
               <input type="checkbox" checked={starWaypointsVisible} onChange={(e) => setStarWaypointsVisible(e.target.checked)} />
             </div>
             <div className="options-row column">
-              <span>Airport Filter</span>
-              <input
-                type="text"
-                placeholder="e.g. VTBS, VTBD..."
-                value={starAirportFilter}
-                onChange={(e) => setStarAirportFilter(e.target.value.toUpperCase())}
+              <span>Airport</span>
+              <MultiSelectDropdown
+                options={airportOptions(starData.airports)}
+                selected={starAirportFilter}
+                onChange={setStarAirportFilter}
+                placeholder="All Airports"
+              />
+            </div>
+            <div className="options-row column">
+              <span>Procedure</span>
+              <MultiSelectDropdown
+                options={getFilteredProcedures(starData, starAirportFilter)}
+                selected={starProcedureFilter}
+                onChange={setStarProcedureFilter}
+                placeholder="All Procedures"
               />
             </div>
             <div className="options-row column">
@@ -981,24 +1160,29 @@ function OptionsPanel() {
         {optionsPanelTab === 'pbn' && (
           <div className="options-section">
             <div className="options-row">
-              <span onClick={() => setPbnVisible(!pbnVisible)}>PBN Enable</span>
-              <input type="checkbox" checked={pbnVisible} onChange={(e) => setPbnVisible(e.target.checked)} />
-            </div>
-            <div className="options-row">
-              <span onClick={() => setPbnLegsVisible(!pbnLegsVisible)}>IAP Legs</span>
-              <input type="checkbox" checked={pbnLegsVisible} onChange={(e) => setPbnLegsVisible(e.target.checked)} />
+              <span onClick={() => setPbnLegsVisible(!pbnLegsVisible)}>PBN Routes</span>
+              <input type="checkbox" checked={pbnLegsVisible} onChange={(e) => { setPbnLegsVisible(e.target.checked); if (e.target.checked) setPbnVisible(true); }} />
             </div>
             <div className="options-row">
               <span onClick={() => setPbnWaypointsVisible(!pbnWaypointsVisible)}>Waypoints</span>
-              <input type="checkbox" checked={pbnWaypointsVisible} onChange={(e) => setPbnWaypointsVisible(e.target.checked)} />
+              <input type="checkbox" checked={pbnWaypointsVisible} onChange={(e) => { setPbnWaypointsVisible(e.target.checked); if (e.target.checked) setPbnVisible(true); }} />
             </div>
             <div className="options-row column">
-              <span>Airport Filter</span>
-              <input
-                type="text"
-                placeholder="e.g. VTBS, VTBD..."
-                value={pbnAirportFilter}
-                onChange={(e) => setPbnAirportFilter(e.target.value.toUpperCase())}
+              <span>Airport</span>
+              <MultiSelectDropdown
+                options={airportOptions(pbnData.airports)}
+                selected={pbnAirportFilter}
+                onChange={setPbnAirportFilter}
+                placeholder="All Airports"
+              />
+            </div>
+            <div className="options-row column">
+              <span>Procedure</span>
+              <MultiSelectDropdown
+                options={getFilteredProcedures(pbnData, pbnAirportFilter)}
+                selected={pbnProcedureFilter}
+                onChange={setPbnProcedureFilter}
+                placeholder="All Procedures"
               />
             </div>
             <div className="options-row column">
@@ -1021,24 +1205,29 @@ function OptionsPanel() {
         {optionsPanelTab === 'ils' && (
           <div className="options-section">
             <div className="options-row">
-              <span onClick={() => setIlsVisible(!ilsVisible)}>ILS Enable</span>
-              <input type="checkbox" checked={ilsVisible} onChange={(e) => setIlsVisible(e.target.checked)} />
-            </div>
-            <div className="options-row">
-              <span onClick={() => setIlsLegsVisible(!ilsLegsVisible)}>ILS Legs</span>
-              <input type="checkbox" checked={ilsLegsVisible} onChange={(e) => setIlsLegsVisible(e.target.checked)} />
+              <span onClick={() => setIlsLegsVisible(!ilsLegsVisible)}>ILS Routes</span>
+              <input type="checkbox" checked={ilsLegsVisible} onChange={(e) => { setIlsLegsVisible(e.target.checked); if (e.target.checked) setIlsVisible(true); }} />
             </div>
             <div className="options-row">
               <span onClick={() => setIlsWaypointsVisible(!ilsWaypointsVisible)}>Waypoints</span>
-              <input type="checkbox" checked={ilsWaypointsVisible} onChange={(e) => setIlsWaypointsVisible(e.target.checked)} />
+              <input type="checkbox" checked={ilsWaypointsVisible} onChange={(e) => { setIlsWaypointsVisible(e.target.checked); if (e.target.checked) setIlsVisible(true); }} />
             </div>
             <div className="options-row column">
-              <span>Airport Filter</span>
-              <input
-                type="text"
-                placeholder="e.g. VTBS, VTBD..."
-                value={ilsAirportFilter}
-                onChange={(e) => setIlsAirportFilter(e.target.value.toUpperCase())}
+              <span>Airport</span>
+              <MultiSelectDropdown
+                options={airportOptions(ilsData.airports)}
+                selected={ilsAirportFilter}
+                onChange={setIlsAirportFilter}
+                placeholder="All Airports"
+              />
+            </div>
+            <div className="options-row column">
+              <span>Procedure</span>
+              <MultiSelectDropdown
+                options={getFilteredProcedures(ilsData, ilsAirportFilter)}
+                selected={ilsProcedureFilter}
+                onChange={setIlsProcedureFilter}
+                placeholder="All Procedures"
               />
             </div>
             <div className="options-row column">

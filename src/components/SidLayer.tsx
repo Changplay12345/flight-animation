@@ -24,6 +24,7 @@ interface SidWaypointFeature {
     altitude1: number | null;
     altitude2: number | null;
     airport_identifier?: string;
+    procedure_identifier?: string;
   };
   geometry: {
     type: string;
@@ -51,6 +52,7 @@ export function SidLayer() {
   const sidOpacity = useFlightStore(state => state.sidOpacity);
   const sidLineWeight = useFlightStore(state => state.sidLineWeight);
   const sidAirportFilter = useFlightStore(state => state.sidAirportFilter);
+  const sidProcedureFilter = useFlightStore(state => state.sidProcedureFilter);
   const lightMode = useFlightStore(state => state.lightMode);
   
   const lineLayersRef = useRef<L.Layer[]>([]);
@@ -98,15 +100,15 @@ export function SidLayer() {
 
     const lineColor = lightMode ? '#c2185b' : '#ff4081';
 
-    // Parse airport filter (comma-separated list)
-    const filterAirports = sidAirportFilter.split(',').map(s => s.trim()).filter(s => s.length > 0);
-    
     lineData.features.forEach((feature) => {
       // Only show Thailand airports (VT prefix)
       if (!isThailandAirport(feature.properties.airport_identifier)) return;
       
-      // Apply airport filter if specified
-      if (filterAirports.length > 0 && !filterAirports.some(f => feature.properties.airport_identifier.includes(f))) return;
+      // Apply airport filter if specified (array-based)
+      if (sidAirportFilter.length > 0 && !sidAirportFilter.includes(feature.properties.airport_identifier)) return;
+      
+      // Apply procedure filter if specified
+      if (sidProcedureFilter.length > 0 && !sidProcedureFilter.includes(feature.properties.procedure_identifier)) return;
       
       if (feature.geometry.type === 'MultiLineString') {
         feature.geometry.coordinates.forEach((lineCoords) => {
@@ -130,7 +132,7 @@ export function SidLayer() {
         if (map.hasLayer(layer)) map.removeLayer(layer);
       });
     };
-  }, [sidVisible, lightMode, map, lineData, sidOpacity, sidLineWeight, sidAirportFilter]);
+  }, [sidVisible, lightMode, map, lineData, sidOpacity, sidLineWeight, sidAirportFilter, sidProcedureFilter]);
 
   // Render SID waypoints (yellow 4-point star with labels)
   useEffect(() => {
@@ -144,9 +146,6 @@ export function SidLayer() {
     const textColor = lightMode ? '#c2185b' : '#ff80ab';
     const starColor = lightMode ? '#f9a825' : '#ffeb3b';
 
-    // Parse airport filter (comma-separated list)
-    const filterAirports = sidAirportFilter.split(',').map(s => s.trim()).filter(s => s.length > 0);
-
     // Track unique waypoints to avoid duplicates
     const processedWaypoints = new Set<string>();
 
@@ -154,8 +153,11 @@ export function SidLayer() {
       const name = feature.properties.waypoint_identifier;
       if (!name) return;
       
-      // Apply airport filter if specified
-      if (filterAirports.length > 0 && feature.properties.airport_identifier && !filterAirports.some(f => feature.properties.airport_identifier?.includes(f))) return;
+      // Apply airport filter if specified (array-based)
+      if (sidAirportFilter.length > 0 && feature.properties.airport_identifier && !sidAirportFilter.includes(feature.properties.airport_identifier)) return;
+      
+      // Apply procedure filter if specified
+      if (sidProcedureFilter.length > 0 && feature.properties.procedure_identifier && !sidProcedureFilter.includes(feature.properties.procedure_identifier)) return;
       
       // Skip if already processed
       const waypointKey = `${name}`;
@@ -267,7 +269,7 @@ export function SidLayer() {
         if (map.hasLayer(layer)) map.removeLayer(layer);
       });
     };
-  }, [sidVisible, sidWaypointsVisible, lightMode, map, waypointData, sidAirportFilter]);
+  }, [sidVisible, sidWaypointsVisible, lightMode, map, waypointData, sidAirportFilter, sidProcedureFilter]);
 
   return null;
 }

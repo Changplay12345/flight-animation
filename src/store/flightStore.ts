@@ -84,14 +84,16 @@ interface FlightStore {
   sidWaypointsVisible: boolean;
   sidOpacity: number;
   sidLineWeight: number;
-  sidAirportFilter: string;
+  sidAirportFilter: string[];
+  sidProcedureFilter: string[];
   
   // STAR (Standard Terminal Arrival Route)
   starVisible: boolean;
   starWaypointsVisible: boolean;
   starOpacity: number;
   starLineWeight: number;
-  starAirportFilter: string;
+  starAirportFilter: string[];
+  starProcedureFilter: string[];
   
   // PBN (Performance Based Navigation)
   pbnVisible: boolean;
@@ -99,7 +101,8 @@ interface FlightStore {
   pbnWaypointsVisible: boolean;
   pbnOpacity: number;
   pbnLineWeight: number;
-  pbnAirportFilter: string;
+  pbnAirportFilter: string[];
+  pbnProcedureFilter: string[];
   
   // ILS (Instrument Landing System)
   ilsVisible: boolean;
@@ -107,7 +110,8 @@ interface FlightStore {
   ilsWaypointsVisible: boolean;
   ilsOpacity: number;
   ilsLineWeight: number;
-  ilsAirportFilter: string;
+  ilsAirportFilter: string[];
+  ilsProcedureFilter: string[];
   
   // Sector Layers (bacc, ctr, fir_world, bacc_subsector, pdr, tma)
   sectorLayers: Record<string, {
@@ -160,27 +164,31 @@ interface FlightStore {
   setSidWaypointsVisible: (visible: boolean) => void;
   setSidOpacity: (opacity: number) => void;
   setSidLineWeight: (weight: number) => void;
-  setSidAirportFilter: (filter: string) => void;
+  setSidAirportFilter: (filter: string[]) => void;
+  setSidProcedureFilter: (filter: string[]) => void;
   
   setStarVisible: (visible: boolean) => void;
   setStarWaypointsVisible: (visible: boolean) => void;
   setStarOpacity: (opacity: number) => void;
   setStarLineWeight: (weight: number) => void;
-  setStarAirportFilter: (filter: string) => void;
+  setStarAirportFilter: (filter: string[]) => void;
+  setStarProcedureFilter: (filter: string[]) => void;
   
   setPbnVisible: (visible: boolean) => void;
   setPbnLegsVisible: (visible: boolean) => void;
   setPbnWaypointsVisible: (visible: boolean) => void;
   setPbnOpacity: (opacity: number) => void;
   setPbnLineWeight: (weight: number) => void;
-  setPbnAirportFilter: (filter: string) => void;
+  setPbnAirportFilter: (filter: string[]) => void;
+  setPbnProcedureFilter: (filter: string[]) => void;
   
   setIlsVisible: (visible: boolean) => void;
   setIlsLegsVisible: (visible: boolean) => void;
   setIlsWaypointsVisible: (visible: boolean) => void;
   setIlsOpacity: (opacity: number) => void;
   setIlsLineWeight: (weight: number) => void;
-  setIlsAirportFilter: (filter: string) => void;
+  setIlsAirportFilter: (filter: string[]) => void;
+  setIlsProcedureFilter: (filter: string[]) => void;
   
   setSectorLayerVisible: (layer: string, visible: boolean) => void;
   setSectorLayerLabels: (layer: string, visible: boolean) => void;
@@ -248,14 +256,16 @@ export const useFlightStore = create<FlightStore>((set, get) => ({
   sidWaypointsVisible: false,
   sidOpacity: 0.7,
   sidLineWeight: 1,
-  sidAirportFilter: '',
+  sidAirportFilter: [],
+  sidProcedureFilter: [],
   
   // STAR
   starVisible: false,
   starWaypointsVisible: false,
   starOpacity: 0.7,
   starLineWeight: 1,
-  starAirportFilter: '',
+  starAirportFilter: [],
+  starProcedureFilter: [],
   
   // PBN
   pbnVisible: false,
@@ -263,7 +273,8 @@ export const useFlightStore = create<FlightStore>((set, get) => ({
   pbnWaypointsVisible: false,
   pbnOpacity: 0.7,
   pbnLineWeight: 1,
-  pbnAirportFilter: '',
+  pbnAirportFilter: [],
+  pbnProcedureFilter: [],
   
   // ILS
   ilsVisible: false,
@@ -271,7 +282,8 @@ export const useFlightStore = create<FlightStore>((set, get) => ({
   ilsWaypointsVisible: false,
   ilsOpacity: 0.7,
   ilsLineWeight: 1,
-  ilsAirportFilter: '',
+  ilsAirportFilter: [],
+  ilsProcedureFilter: [],
   
   // Sector Layers
   sectorLayers: {
@@ -436,27 +448,31 @@ export const useFlightStore = create<FlightStore>((set, get) => ({
   setSidWaypointsVisible: (visible) => set({ sidWaypointsVisible: visible }),
   setSidOpacity: (opacity) => set({ sidOpacity: opacity }),
   setSidLineWeight: (weight) => set({ sidLineWeight: weight }),
-  setSidAirportFilter: (filter) => set({ sidAirportFilter: filter }),
+  setSidAirportFilter: (filter) => set({ sidAirportFilter: filter, sidProcedureFilter: [] }),
+  setSidProcedureFilter: (filter) => set({ sidProcedureFilter: filter }),
   
   setStarVisible: (visible) => set({ starVisible: visible }),
   setStarWaypointsVisible: (visible) => set({ starWaypointsVisible: visible }),
   setStarOpacity: (opacity) => set({ starOpacity: opacity }),
   setStarLineWeight: (weight) => set({ starLineWeight: weight }),
-  setStarAirportFilter: (filter) => set({ starAirportFilter: filter }),
+  setStarAirportFilter: (filter) => set({ starAirportFilter: filter, starProcedureFilter: [] }),
+  setStarProcedureFilter: (filter) => set({ starProcedureFilter: filter }),
   
   setPbnVisible: (visible) => set({ pbnVisible: visible }),
   setPbnLegsVisible: (visible) => set({ pbnLegsVisible: visible }),
   setPbnWaypointsVisible: (visible) => set({ pbnWaypointsVisible: visible }),
   setPbnOpacity: (opacity) => set({ pbnOpacity: opacity }),
   setPbnLineWeight: (weight) => set({ pbnLineWeight: weight }),
-  setPbnAirportFilter: (filter) => set({ pbnAirportFilter: filter }),
+  setPbnAirportFilter: (filter) => set({ pbnAirportFilter: filter, pbnProcedureFilter: [] }),
+  setPbnProcedureFilter: (filter) => set({ pbnProcedureFilter: filter }),
   
   setIlsVisible: (visible) => set({ ilsVisible: visible }),
   setIlsLegsVisible: (visible) => set({ ilsLegsVisible: visible }),
   setIlsWaypointsVisible: (visible) => set({ ilsWaypointsVisible: visible }),
   setIlsOpacity: (opacity) => set({ ilsOpacity: opacity }),
   setIlsLineWeight: (weight) => set({ ilsLineWeight: weight }),
-  setIlsAirportFilter: (filter) => set({ ilsAirportFilter: filter }),
+  setIlsAirportFilter: (filter) => set({ ilsAirportFilter: filter, ilsProcedureFilter: [] }),
+  setIlsProcedureFilter: (filter) => set({ ilsProcedureFilter: filter }),
   
   setSectorLayerVisible: (layer, visible) => set(state => ({
     sectorLayers: { ...state.sectorLayers, [layer]: { ...state.sectorLayers[layer], visible } }

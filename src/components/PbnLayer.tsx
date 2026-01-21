@@ -25,6 +25,7 @@ interface PbnWaypointFeature {
     altitude1: number | null;
     altitude2: number | null;
     airport_identifier?: string;
+    procedure_identifier?: string;
   };
   geometry: {
     type: string;
@@ -53,6 +54,7 @@ export function PbnLayer() {
   const pbnOpacity = useFlightStore(state => state.pbnOpacity);
   const pbnLineWeight = useFlightStore(state => state.pbnLineWeight);
   const pbnAirportFilter = useFlightStore(state => state.pbnAirportFilter);
+  const pbnProcedureFilter = useFlightStore(state => state.pbnProcedureFilter);
   const lightMode = useFlightStore(state => state.lightMode);
   
   const legsLayersRef = useRef<L.Layer[]>([]);
@@ -99,12 +101,10 @@ export function PbnLayer() {
 
     const lineColor = lightMode ? '#ef6c00' : '#ffb74d';
 
-    // Parse airport filter
-    const filterAirports = pbnAirportFilter.split(',').map(s => s.trim()).filter(s => s.length > 0);
-    
     legsData.features.forEach((feature) => {
       if (!isThailandAirport(feature.properties.airport_identifier)) return;
-      if (filterAirports.length > 0 && !filterAirports.some(f => feature.properties.airport_identifier.includes(f))) return;
+      if (pbnAirportFilter.length > 0 && !pbnAirportFilter.includes(feature.properties.airport_identifier)) return;
+      if (pbnProcedureFilter.length > 0 && feature.properties.procedure_identifier && !pbnProcedureFilter.includes(feature.properties.procedure_identifier)) return;
       
       if (feature.geometry.type === 'MultiLineString') {
         (feature.geometry.coordinates as number[][][]).forEach((lineCoords) => {
@@ -127,7 +127,7 @@ export function PbnLayer() {
         if (map.hasLayer(layer)) map.removeLayer(layer);
       });
     };
-  }, [pbnVisible, pbnLegsVisible, lightMode, map, legsData, pbnOpacity, pbnLineWeight, pbnAirportFilter]);
+  }, [pbnVisible, pbnLegsVisible, lightMode, map, legsData, pbnOpacity, pbnLineWeight, pbnAirportFilter, pbnProcedureFilter]);
 
   // Render PBN waypoints
   useEffect(() => {
@@ -141,9 +141,6 @@ export function PbnLayer() {
     const textColor = lightMode ? '#e65100' : '#ffcc80';
     const markerColor = lightMode ? '#ff6d00' : '#ff9100';
 
-    // Parse airport filter
-    const filterAirports = pbnAirportFilter.split(',').map(s => s.trim()).filter(s => s.length > 0);
-
     const processedWaypoints = new Set<string>();
 
     waypointData.features.forEach((feature) => {
@@ -153,8 +150,9 @@ export function PbnLayer() {
       // Filter for Thailand airports only
       if (feature.properties.airport_identifier && !isThailandAirport(feature.properties.airport_identifier)) return;
       
-      // Apply airport filter
-      if (filterAirports.length > 0 && feature.properties.airport_identifier && !filterAirports.some(f => feature.properties.airport_identifier?.includes(f))) return;
+      // Apply airport filter (array-based)
+      if (pbnAirportFilter.length > 0 && feature.properties.airport_identifier && !pbnAirportFilter.includes(feature.properties.airport_identifier)) return;
+      if (pbnProcedureFilter.length > 0 && feature.properties.procedure_identifier && !pbnProcedureFilter.includes(feature.properties.procedure_identifier)) return;
       
       const waypointKey = `${name}`;
       if (processedWaypoints.has(waypointKey)) return;
@@ -225,7 +223,7 @@ export function PbnLayer() {
         if (map.hasLayer(layer)) map.removeLayer(layer);
       });
     };
-  }, [pbnVisible, pbnWaypointsVisible, lightMode, map, waypointData, pbnAirportFilter]);
+  }, [pbnVisible, pbnWaypointsVisible, lightMode, map, waypointData, pbnAirportFilter, pbnProcedureFilter]);
 
   return null;
 }
