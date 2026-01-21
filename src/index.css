@@ -2934,19 +2934,17 @@ body.light-mode #btn-options {
 }
 
 .multi-select-menu {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  right: 0;
+  position: fixed;
+  width: 220px;
   margin-top: 4px;
   background: rgba(26, 26, 46, 0.98);
   border: 1px solid #3a3a5a;
   border-radius: 5px;
-  z-index: 2000;
-  max-height: 250px;
+  z-index: 99999;
+  max-height: 300px;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.5);
 }
 
 .multi-select-search {
