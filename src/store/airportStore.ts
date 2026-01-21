@@ -87,20 +87,41 @@ export const useAirportStore = create<AirportStore>((set) => ({
   })),
 }));
 
+// Parse CSV line handling quoted fields
+function parseCSVLine(line: string): string[] {
+  const result: string[] = [];
+  let current = '';
+  let inQuotes = false;
+  
+  for (let i = 0; i < line.length; i++) {
+    const char = line[i];
+    if (char === '"') {
+      inQuotes = !inQuotes;
+    } else if (char === ',' && !inQuotes) {
+      result.push(current.trim());
+      current = '';
+    } else {
+      current += char;
+    }
+  }
+  result.push(current.trim());
+  return result;
+}
+
 // Parse airport CSV
 export async function loadAirports(): Promise<Airport[]> {
   const response = await fetch('/airports/Airport_with_AP_Main.csv');
   const text = await response.text();
   const lines = text.trim().split('\n');
-  const headers = lines[0].split(',');
+  const headers = parseCSVLine(lines[0]);
   
   const airports: Airport[] = [];
   for (let i = 1; i < lines.length; i++) {
-    const values = lines[i].split(',');
+    const values = parseCSVLine(lines[i]);
     if (values.length < headers.length) continue;
     
     const row: Record<string, string> = {};
-    headers.forEach((h, idx) => { row[h.trim()] = values[idx]?.trim() || ''; });
+    headers.forEach((h, idx) => { row[h.trim()] = values[idx] || ''; });
     
     airports.push({
       fid: parseInt(row.fid) || 0,
