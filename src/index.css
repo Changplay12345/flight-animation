@@ -2632,7 +2632,7 @@ body.light-mode #btn-ils.active {
   top: 100px;
   left: 10px;
   width: 320px;
-  max-height: calc(100vh - 120px);
+  height: 600px;
   background: rgba(26, 26, 46, 0.95);
   border: 1px solid #3a3a5a;
   border-radius: 10px;
@@ -2777,6 +2777,7 @@ body.light-mode #btn-ils.active {
   flex: 1;
   height: 4px;
   -webkit-appearance: none;
+  appearance: none;
   background: #3a3a5a;
   border-radius: 2px;
   cursor: pointer;
@@ -2934,17 +2935,20 @@ body.light-mode #btn-options {
 }
 
 .multi-select-menu {
-  position: fixed;
-  width: 220px;
+  position: absolute;
+  top: 100%;
+
+  left: 0;
+  right: 0;
   margin-top: 4px;
   background: rgba(26, 26, 46, 0.98);
   border: 1px solid #3a3a5a;
   border-radius: 5px;
-  z-index: 99999;
-  max-height: 300px;
+  z-index: 2000;
+  max-height: 350px;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
 }
 
 .multi-select-search {

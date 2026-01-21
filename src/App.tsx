@@ -444,9 +444,7 @@ function MultiSelectDropdown({
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const [search, setSearch] = useState('');
-  const [menuPos, setMenuPos] = useState<{ top: number; left: number } | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const triggerRef = useRef<HTMLDivElement>(null);
   
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -457,15 +455,6 @@ function MultiSelectDropdown({
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
-  
-  const handleOpen = () => {
-    if (disabled) return;
-    if (!isOpen && triggerRef.current) {
-      const rect = triggerRef.current.getBoundingClientRect();
-      setMenuPos({ top: rect.bottom + 4, left: rect.left });
-    }
-    setIsOpen(!isOpen);
-  };
   
   const filteredOptions = options.filter(opt => 
     opt.label.toLowerCase().includes(search.toLowerCase()) ||
@@ -485,14 +474,14 @@ function MultiSelectDropdown({
   
   return (
     <div className={`multi-select-dropdown ${disabled ? 'disabled' : ''}`} ref={dropdownRef}>
-      <div className="multi-select-trigger" ref={triggerRef} onClick={handleOpen}>
+      <div className="multi-select-trigger" onClick={() => !disabled && setIsOpen(!isOpen)}>
         <span className="multi-select-text">
           {selected.length === 0 ? placeholder : `${selected.length} selected`}
         </span>
         <span className="multi-select-arrow">{isOpen ? '▲' : '▼'}</span>
       </div>
-      {isOpen && !disabled && menuPos && (
-        <div className="multi-select-menu" style={{ top: menuPos.top, left: menuPos.left }}>
+      {isOpen && !disabled && (
+        <div className="multi-select-menu">
           <input
             type="text"
             className="multi-select-search"
