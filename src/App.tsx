@@ -1487,6 +1487,10 @@ function FilterPanel() {
   const [depOpen, setDepOpen] = useState(false);
   const [destOpen, setDestOpen] = useState(false);
   const [actypeOpen, setActypeOpen] = useState(false);
+  const [airportFilterOpen, setAirportFilterOpen] = useState(false);
+  
+  const airportFilterCode = useFlightStore(state => state.airportFilterCode);
+  const setAirportFilterCode = useFlightStore(state => state.setAirportFilterCode);
   
   // Route data with counts
   const routeData = useMemo(() => {
@@ -1569,8 +1573,18 @@ function FilterPanel() {
     });
   }, [flights, flightMeta, filter, getFlightMaxFL]);
   
+  // Get unique airports (both DEP and DEST) for airport filter dropdown
+  const uniqueAirports = useMemo(() => {
+    const airportSet = new Set<string>();
+    Object.values(flightMeta).forEach(meta => {
+      if (meta.dep) airportSet.add(meta.dep);
+      if (meta.dest) airportSet.add(meta.dest);
+    });
+    return Array.from(airportSet).sort();
+  }, [flightMeta]);
+  
   useEffect(() => {
-    const handleClick = () => { setDepOpen(false); setDestOpen(false); setActypeOpen(false); };
+    const handleClick = () => { setDepOpen(false); setDestOpen(false); setActypeOpen(false); setAirportFilterOpen(false); };
     document.addEventListener('click', handleClick);
     return () => document.removeEventListener('click', handleClick);
   }, []);
@@ -1672,6 +1686,39 @@ function FilterPanel() {
               </div>
             )}
           </div>
+        </div>
+      </div>
+      
+      <div className="filter-section airport-filter-section">
+        <label>✈️ Airport Focus</label>
+        <div className="airport-filter-info">
+          Show flights DEP/DEST from selected airport.<br/>
+          <span className="dep-color">■ Blue = Departing</span> <span className="dest-color">■ Yellow = Arriving</span>
+        </div>
+        <div className="combobox" onClick={(e) => e.stopPropagation()}>
+          <input
+            type="text"
+            placeholder="Select airport..."
+            value={airportFilterCode}
+            onChange={(e) => setAirportFilterCode(e.target.value.toUpperCase())}
+            onFocus={() => setAirportFilterOpen(true)}
+          />
+          <button className="dropdown-btn" onClick={() => setAirportFilterOpen(!airportFilterOpen)}>▼</button>
+          {airportFilterCode && (
+            <button className="clear-btn" onClick={() => setAirportFilterCode('')}>×</button>
+          )}
+          {airportFilterOpen && (
+            <div className="dropdown-list">
+              {uniqueAirports
+                .filter(ap => ap.toUpperCase().includes(airportFilterCode.toUpperCase()))
+                .slice(0, 50)
+                .map(ap => (
+                  <div key={ap} className="dropdown-item" onClick={() => { setAirportFilterCode(ap); setAirportFilterOpen(false); }}>
+                    <span className="dropdown-value">{ap}</span>
+                  </div>
+                ))}
+            </div>
+          )}
         </div>
       </div>
       
@@ -2253,11 +2300,22 @@ function FlightRenderer() {
         const flTrailsOn = useFlightStore.getState().flTrailsVisible;
         const minFL = useFlightStore.getState().globalMinFL;
         const maxFL = useFlightStore.getState().globalMaxFL;
+        const airportFilter = useFlightStore.getState().airportFilterCode;
         
         for (const key in flights) {
           const marker = markersRef.current[key];
           const fm = meta[key];
           if (!marker || !fm) continue;
+          
+          // When airport filter is active, only show flights matching DEP or DEST
+          if (airportFilter) {
+            const matchesDep = fm.dep?.toUpperCase() === airportFilter.toUpperCase();
+            const matchesDest = fm.dest?.toUpperCase() === airportFilter.toUpperCase();
+            if (!matchesDep && !matchesDest) {
+              if (map.hasLayer(marker)) map.removeLayer(marker);
+              continue;
+            }
+          }
           
           if (!fm.visible) {
             if (map.hasLayer(marker)) map.removeLayer(marker);
@@ -2269,9 +2327,14 @@ function FlightRenderer() {
           if (pos && pos.visible) {
             marker.setLatLng([pos.lat, pos.lon]);
             
-            // Determine icon color - use FL color when FL trails mode is on
+            // Determine icon color - airport filter overrides other colors
             let iconColor = fm.color;
-            if (flTrailsOn && pos.fl !== null) {
+            if (airportFilter) {
+              const matchesDep = fm.dep?.toUpperCase() === airportFilter.toUpperCase();
+              const matchesDest = fm.dest?.toUpperCase() === airportFilter.toUpperCase();
+              if (matchesDep) iconColor = '#0088ff'; // Blue for departing
+              else if (matchesDest) iconColor = '#ffcc00'; // Yellow for arriving
+            } else if (flTrailsOn && pos.fl !== null) {
               const flColor = flToColor(pos.fl, minFL, maxFL, useFlightStore.getState().lightMode);
               if (flColor) iconColor = flColor;
             }
@@ -2335,10 +2398,25 @@ function FlightRenderer() {
         const flTrails = useFlightStore.getState().flTrailsVisible;
         const decayMinutes = useFlightStore.getState().trailDecayMinutes;
         const decayMs = decayMinutes * 60 * 1000; // Convert to milliseconds
+        const airportFilter = useFlightStore.getState().airportFilterCode;
         
         for (const key in flights) {
           const fm = meta[key];
           const points = flights[key];
+          
+          // When airport filter is active, filter flights and show trails with override colors
+          if (airportFilter) {
+            const matchesDep = fm?.dep?.toUpperCase() === airportFilter.toUpperCase();
+            const matchesDest = fm?.dest?.toUpperCase() === airportFilter.toUpperCase();
+            if (!matchesDep && !matchesDest) {
+              // Hide trails for non-matching flights
+              const p = polylinesRef.current[key];
+              if (p && map.hasLayer(p)) map.removeLayer(p);
+              const segs = flSegmentsRef.current[key];
+              if (segs) segs.forEach(s => { if (map.hasLayer(s)) map.removeLayer(s); });
+              continue;
+            }
+          }
           
           // If flight is hidden by user (filter), remove trails
           if (!fm?.visible) {
@@ -2367,8 +2445,17 @@ function FlightRenderer() {
           // Check if trail has fully decayed (startIdx > endIdx means no visible trail)
           const trailFullyDecayed = !showFull && decayMs > 0 && startIdx > endIdx;
           
-          // Normal trails
-          if (trails) {
+          // Determine trail color - airport filter overrides
+          let trailColor = fm.color;
+          if (airportFilter) {
+            const matchesDep = fm.dep?.toUpperCase() === airportFilter.toUpperCase();
+            const matchesDest = fm.dest?.toUpperCase() === airportFilter.toUpperCase();
+            if (matchesDep) trailColor = '#0088ff'; // Blue for departing
+            else if (matchesDest) trailColor = '#ffcc00'; // Yellow for arriving
+          }
+          
+          // Normal trails (or airport filter trails)
+          if (trails || airportFilter) {
             // If trail fully decayed, remove it
             if (trailFullyDecayed) {
               const p = polylinesRef.current[key];
@@ -2376,10 +2463,14 @@ function FlightRenderer() {
             } else {
               if (!polylinesRef.current[key]) {
                 polylinesRef.current[key] = L.polyline([], {
-                  color: fm.color, weight: CONFIG.polylineWeight, opacity: CONFIG.polylineOpacity
+                  color: trailColor, weight: CONFIG.polylineWeight, opacity: CONFIG.polylineOpacity
                 });
               }
               const p = polylinesRef.current[key];
+              // Update trail color if airport filter is active
+              if (airportFilter) {
+                p.setStyle({ color: trailColor });
+              }
               
               // Always update when decaying (startIdx changes even when endIdx doesn't)
               if (showFull) {

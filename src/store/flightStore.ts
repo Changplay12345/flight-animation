@@ -121,6 +121,9 @@ interface FlightStore {
     opacity: number;
   }>;
   
+  // Airport Filter (DEP/DEST color override)
+  airportFilterCode: string; // Selected airport ICAO code for filtering
+  
   // Actions
   setFlights: (flights: Record<string, FlightPoint[]>, meta: Record<string, FlightMeta>, stats: { minFL: number; maxFL: number; totalRows: number }) => void;
   setVisibility: (key: string, visible: boolean) => void;
@@ -194,6 +197,8 @@ interface FlightStore {
   setSectorLayerLabels: (layer: string, visible: boolean) => void;
   setSectorLayerFill: (layer: string, visible: boolean) => void;
   setSectorLayerOpacity: (layer: string, opacity: number) => void;
+  
+  setAirportFilterCode: (code: string) => void;
   
   updateTimelineBounds: (flightKeys: string[] | null) => void;
 }
@@ -294,6 +299,9 @@ export const useFlightStore = create<FlightStore>((set, get) => ({
     pdr: { visible: false, labelsVisible: false, fillVisible: true, opacity: 0.4 },
     tma: { visible: false, labelsVisible: false, fillVisible: true, opacity: 0.4 },
   },
+  
+  // Airport Filter
+  airportFilterCode: '',
   
   setFlights: (flights, meta, stats) => {
     const keys = Object.keys(flights);
@@ -486,6 +494,15 @@ export const useFlightStore = create<FlightStore>((set, get) => ({
   setSectorLayerOpacity: (layer, opacity) => set(state => ({
     sectorLayers: { ...state.sectorLayers, [layer]: { ...state.sectorLayers[layer], opacity } }
   })),
+  
+  setAirportFilterCode: (code) => {
+    // When enabling airport filter, disable normal trails and FL trails
+    if (code) {
+      set({ airportFilterCode: code, trailsVisible: false, flTrailsVisible: false });
+    } else {
+      set({ airportFilterCode: '' });
+    }
+  },
   
   lockToFlight: (key) => {
     const { lockedFlightKey, flightMeta, setVisibility } = get();

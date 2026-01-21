@@ -886,6 +886,48 @@ body.light-mode .airway-dropdown .opacity-value {
   border-bottom: 1px solid #2a2a4a;
 }
 
+.airport-filter-section {
+  background: rgba(0, 136, 255, 0.05);
+  border: 1px solid rgba(0, 136, 255, 0.2);
+  border-radius: 6px;
+  margin: 8px 12px;
+  padding: 12px !important;
+}
+
+.airport-filter-info {
+  font-size: 11px;
+  color: #888;
+  margin-bottom: 10px;
+  line-height: 1.4;
+}
+
+.airport-filter-info .dep-color {
+  color: #0088ff;
+  font-weight: 600;
+}
+
+.airport-filter-info .dest-color {
+  color: #ffcc00;
+  font-weight: 600;
+}
+
+.combobox .clear-btn {
+  position: absolute;
+  right: 30px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  color: #888;
+  font-size: 16px;
+  cursor: pointer;
+  padding: 0 5px;
+}
+
+.combobox .clear-btn:hover {
+  color: #e94560;
+}
+
 .filter-section:last-child {
   border-bottom: none;
   flex: 1;
