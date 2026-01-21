@@ -1573,15 +1573,18 @@ function FilterPanel() {
     });
   }, [flights, flightMeta, filter, getFlightMaxFL]);
   
-  // Get unique airports (both DEP and DEST) for airport filter dropdown
-  const uniqueAirports = useMemo(() => {
-    const airportSet = new Set<string>();
-    Object.values(flightMeta).forEach(meta => {
-      if (meta.dep) airportSet.add(meta.dep);
-      if (meta.dest) airportSet.add(meta.dest);
+  // Get unique airports (both DEP and DEST) for airport filter dropdown - combine from routeData
+  const airportOptions = useMemo(() => {
+    const { depCounts, destCounts } = routeData;
+    const combined: Record<string, number> = {};
+    Object.entries(depCounts).forEach(([code, count]) => {
+      combined[code] = (combined[code] || 0) + count;
     });
-    return Array.from(airportSet).sort();
-  }, [flightMeta]);
+    Object.entries(destCounts).forEach(([code, count]) => {
+      combined[code] = (combined[code] || 0) + count;
+    });
+    return Object.entries(combined).sort((a, b) => b[1] - a[1]);
+  }, [routeData]);
   
   useEffect(() => {
     const handleClick = () => { setDepOpen(false); setDestOpen(false); setActypeOpen(false); setAirportFilterOpen(false); };
@@ -1705,12 +1708,13 @@ function FilterPanel() {
           )}
           {airportFilterOpen && (
             <div className="dropdown-list">
-              {uniqueAirports
-                .filter(ap => ap.toUpperCase().includes(airportFilterCode.toUpperCase()))
+              {airportOptions
+                .filter(([code]) => code.toUpperCase().includes(airportFilterCode.toUpperCase()))
                 .slice(0, 50)
-                .map(ap => (
-                  <div key={ap} className="dropdown-item" onClick={() => { setAirportFilterCode(ap); setAirportFilterOpen(false); }}>
-                    <span className="dropdown-value">{ap}</span>
+                .map(([code, count]) => (
+                  <div key={code} className="dropdown-item" onClick={() => { setAirportFilterCode(code); setAirportFilterOpen(false); }}>
+                    <span className="dropdown-value">{code}</span>
+                    <span className="dropdown-count">{count}</span>
                   </div>
                 ))}
             </div>
