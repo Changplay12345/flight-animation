@@ -1,4 +1,4 @@
-v fid,area_code,icao_code,airport_identifier,airport_identifier_3letter,airport_name,airport_ref_latitude,airport_ref_longitude,ifr_capability,longest_runway_surface_code,elevation,transition_altitude,transition_level,speed_limit,speed_limit_altitude,iata_ata_designator,id,AP,Main
+fid,area_code,icao_code,airport_identifier,airport_identifier_3letter,airport_name,airport_ref_latitude,airport_ref_longitude,ifr_capability,longest_runway_surface_code,elevation,transition_altitude,transition_level,speed_limit,speed_limit_altitude,iata_ata_designator,id,AP,Main
 15832,PAC,VT,VTBD,,DON MUEANG INTL,13.91437222,100.60569167,Y,H,9,11000,13000,250,10000,DMK,VTVTBD,Don Mueang International Airport,Y
 15833,PAC,VT,VTBH,,SA PRAN NAK AERO,14.94833333,100.64166667,N,H,95,11000,13000,250,10000,,VTVTBH,Sa Pran Nak Aero Airport,N
 15834,PAC,VT,VTBI,,PRACHIN BURI,14.07666667,101.38166667,N,H,80,11000,13000,250,10000,,VTVTBI,Prachin Buri Airport,N
