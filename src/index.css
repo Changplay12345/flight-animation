@@ -3225,8 +3225,27 @@ body.light-mode .theme-buttons button:hover {
 
 /* ============== Airports Tab Content ============== */
 .airports-tab {
-  max-height: 400px;
-  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.airport-search {
+  padding: 8px 12px;
+}
+
+.airport-search input {
+  width: 100%;
+  padding: 8px 10px;
+  background: #2d2d44;
+  border: 1px solid #3d3d5c;
+  border-radius: 4px;
+  color: #fff;
+  font-size: 12px;
+}
+
+.airport-search input::placeholder {
+  color: #888;
 }
 
 .airport-actions {
@@ -3252,9 +3271,14 @@ body.light-mode .theme-buttons button:hover {
   background: rgba(74, 158, 255, 0.3);
 }
 
-.airport-list {
-  max-height: 200px;
+.airport-list-container {
+  flex: 1;
   overflow-y: auto;
+  max-height: 350px;
+}
+
+.airport-list {
+  padding: 0;
 }
 
 .airport-list-item {
@@ -3271,11 +3295,15 @@ body.light-mode .theme-buttons button:hover {
 }
 
 .airport-list-item.hidden {
-  opacity: 0.4;
+  opacity: 0.5;
 }
 
-.airport-list-item .airport-icon {
-  font-size: 10px;
+.airport-list-item.main {
+  background: rgba(74, 158, 255, 0.05);
+}
+
+.airport-list-item input[type="checkbox"] {
+  flex-shrink: 0;
 }
 
 .airport-list-item .airport-name {
@@ -3289,8 +3317,9 @@ body.light-mode .theme-buttons button:hover {
 
 .airport-list-item .airport-code {
   font-size: 11px;
-  color: #888;
+  color: #4a9eff;
   font-family: monospace;
+  flex-shrink: 0;
 }
 
 .options-info {
@@ -3307,6 +3336,12 @@ body.light-mode .theme-buttons button:hover {
   font-size: 13px;
 }
 
+body.light-mode .airport-search input {
+  background: #f5f5f5;
+  border-color: #ccc;
+  color: #333;
+}
+
 body.light-mode .airport-actions {
   border-bottom-color: #ddd;
 }
@@ -3315,8 +3350,16 @@ body.light-mode .airport-list-item .airport-name {
   color: #333;
 }
 
+body.light-mode .airport-list-item .airport-code {
+  color: #2196f3;
+}
+
 body.light-mode .airport-list-item:hover {
   background: rgba(0,0,0,0.05);
+}
+
+body.light-mode .airport-list-item.main {
+  background: rgba(33, 150, 243, 0.08);
 }
 
 body.light-mode .options-info {

@@ -131,22 +131,22 @@ function TrailsDropdown() {
       className="trails-dropdown"
       style={{ position: 'fixed', top: dropdownPos.top, left: dropdownPos.left, zIndex: 999999 }}
     >
-      <div className="trails-option-row">
-        <span onClick={() => setTrailsVisible(!trailsVisible)}>Show Trails</span>
+      <label className="trails-option-row">
+        <span>Show Trails</span>
         <input type="checkbox" checked={trailsVisible} onChange={(e) => setTrailsVisible(e.target.checked)} />
-      </div>
-      <div className="trails-option-row">
-        <span onClick={() => setFlTrailsVisible(!flTrailsVisible)}>FL Color Trails</span>
+      </label>
+      <label className="trails-option-row">
+        <span>FL Color Trails</span>
         <input type="checkbox" checked={flTrailsVisible} onChange={(e) => setFlTrailsVisible(e.target.checked)} />
-      </div>
-      <div className="trails-option-row">
-        <span onClick={() => setShowFullTrails(!showFullTrails)}>Full Trails</span>
+      </label>
+      <label className="trails-option-row">
+        <span>Full Trails</span>
         <input type="checkbox" checked={showFullTrails} onChange={(e) => setShowFullTrails(e.target.checked)} />
-      </div>
-      <div className="trails-option-row">
-        <span onClick={() => setTagsVisible(!tagsVisible)}>Flight Tags</span>
+      </label>
+      <label className="trails-option-row">
+        <span>Flight Tags</span>
         <input type="checkbox" checked={tagsVisible} onChange={(e) => setTagsVisible(e.target.checked)} />
-      </div>
+      </label>
       {!showFullTrails && (
         <div className="trails-option-row column">
           <span>Trail Decay</span>
@@ -205,6 +205,7 @@ function Toolbar() {
 
   return (
     <div id="toolbar">
+      <div id="time-display">{timeDisplay}</div>
       <button id="btn-rewind" title="Rewind" onClick={rewind}>⏪</button>
       <button 
         id="btn-play" 
@@ -242,7 +243,6 @@ function Toolbar() {
       >
         🔍 Filter
       </button>
-      <div id="time-display">{timeDisplay}</div>
     </div>
   );
 }
@@ -521,6 +521,7 @@ function MultiSelectDropdown({
 
 // ============== Airports Tab Content ==============
 function AirportsTabContent() {
+  const [searchTerm, setSearchTerm] = useState('');
   const airports = useAirportStore(state => state.airports);
   const toggleAirportVisibility = useAirportStore(state => state.toggleAirportVisibility);
   const showAllAirports = useAirportStore(state => state.showAllAirports);
@@ -528,58 +529,92 @@ function AirportsTabContent() {
   const runwaysVisible = useAirportStore(state => state.runwaysVisible);
   const setRunwaysVisible = useAirportStore(state => state.setRunwaysVisible);
   
-  const mainAirports = useMemo(() => airports.filter(a => a.Main === 'Y'), [airports]);
-  const subAirports = useMemo(() => airports.filter(a => a.Main !== 'Y'), [airports]);
+  // Main airports = IFR capable (ifr_capability === 'Y')
+  const mainAirports = useMemo(() => airports.filter(a => a.ifr_capability === 'Y'), [airports]);
+  const subAirports = useMemo(() => airports.filter(a => a.ifr_capability !== 'Y'), [airports]);
+  
+  // Filter by search term
+  const filterAirports = (list: typeof airports) => {
+    if (!searchTerm) return list;
+    const term = searchTerm.toLowerCase();
+    return list.filter(a => 
+      a.airport_identifier.toLowerCase().includes(term) ||
+      a.airport_name.toLowerCase().includes(term) ||
+      (a.iata_ata_designator && a.iata_ata_designator.toLowerCase().includes(term))
+    );
+  };
+  
+  const filteredMain = filterAirports(mainAirports);
+  const filteredSub = filterAirports(subAirports);
   
   return (
     <div className="options-section airports-tab">
-      <div className="options-row">
-        <span onClick={() => setRunwaysVisible(!runwaysVisible)}>Show Runways</span>
+      <label className="options-row">
+        <span>Show Runways</span>
         <input type="checkbox" checked={runwaysVisible} onChange={(e) => setRunwaysVisible(e.target.checked)} />
+      </label>
+      <div className="airport-search">
+        <input 
+          type="text" 
+          placeholder="Search airports..." 
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
       </div>
       <div className="airport-actions">
         <button onClick={showAllAirports}>Show All</button>
         <button onClick={hideAllAirports}>Hide All</button>
       </div>
-      {mainAirports.length > 0 && (
-        <>
-          <div className="airport-section-title">Main Airports</div>
-          <div className="airport-list">
-            {mainAirports.map(a => (
-              <div 
-                key={a.fid} 
-                className={`airport-list-item ${a.visible ? 'visible' : 'hidden'}`}
-                onClick={() => toggleAirportVisibility(a.fid)}
-              >
-                <span className="airport-icon">🔴</span>
-                <span className="airport-name">{a.AP || a.airport_name}</span>
-                <span className="airport-code">{a.airport_identifier}</span>
-              </div>
-            ))}
-          </div>
-        </>
-      )}
-      {subAirports.length > 0 && (
-        <>
-          <div className="airport-section-title">Sub Airports</div>
-          <div className="airport-list">
-            {subAirports.map(a => (
-              <div 
-                key={a.fid} 
-                className={`airport-list-item ${a.visible ? 'visible' : 'hidden'}`}
-                onClick={() => toggleAirportVisibility(a.fid)}
-              >
-                <span className="airport-icon">🔵</span>
-                <span className="airport-name">{a.AP || a.airport_name}</span>
-                <span className="airport-code">{a.airport_identifier}</span>
-              </div>
-            ))}
-          </div>
-        </>
-      )}
-      {airports.length === 0 && (
-        <div className="options-empty">No airports loaded</div>
-      )}
+      <div className="airport-list-container">
+        {filteredMain.length > 0 && (
+          <>
+            <div className="airport-section-title">Main Airports ({filteredMain.length})</div>
+            <div className="airport-list">
+              {filteredMain.map(a => (
+                <label 
+                  key={a.fid} 
+                  className={`airport-list-item main ${a.visible ? 'visible' : 'hidden'}`}
+                >
+                  <input 
+                    type="checkbox" 
+                    checked={a.visible} 
+                    onChange={() => toggleAirportVisibility(a.fid)} 
+                  />
+                  <span className="airport-name">{a.airport_name}</span>
+                  <span className="airport-code">{a.airport_identifier}</span>
+                </label>
+              ))}
+            </div>
+          </>
+        )}
+        {filteredSub.length > 0 && (
+          <>
+            <div className="airport-section-title">Other Airports ({filteredSub.length})</div>
+            <div className="airport-list">
+              {filteredSub.map(a => (
+                <label 
+                  key={a.fid} 
+                  className={`airport-list-item ${a.visible ? 'visible' : 'hidden'}`}
+                >
+                  <input 
+                    type="checkbox" 
+                    checked={a.visible} 
+                    onChange={() => toggleAirportVisibility(a.fid)} 
+                  />
+                  <span className="airport-name">{a.airport_name}</span>
+                  <span className="airport-code">{a.airport_identifier}</span>
+                </label>
+              ))}
+            </div>
+          </>
+        )}
+        {airports.length === 0 && (
+          <div className="options-empty">No airports loaded</div>
+        )}
+        {airports.length > 0 && filteredMain.length === 0 && filteredSub.length === 0 && (
+          <div className="options-empty">No airports match "{searchTerm}"</div>
+        )}
+      </div>
     </div>
   );
 }
