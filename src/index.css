@@ -894,21 +894,16 @@ body.light-mode .airway-dropdown .opacity-value {
   padding: 12px !important;
 }
 
-.airport-filter-info {
-  font-size: 11px;
-  color: #888;
-  margin-bottom: 10px;
-  line-height: 1.4;
-}
-
-.airport-filter-info .dep-color {
+.airport-filter-section label .dep-color {
   color: #0088ff;
   font-weight: 600;
+  margin-left: 8px;
 }
 
-.airport-filter-info .dest-color {
+.airport-filter-section label .dest-color {
   color: #ffcc00;
   font-weight: 600;
+  margin-left: 4px;
 }
 
 .combobox .clear-btn {

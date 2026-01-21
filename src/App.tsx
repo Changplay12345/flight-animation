@@ -1690,11 +1690,7 @@ function FilterPanel() {
       </div>
       
       <div className="filter-section airport-filter-section">
-        <label>✈️ Airport Focus</label>
-        <div className="airport-filter-info">
-          Show flights DEP/DEST from selected airport.<br/>
-          <span className="dep-color">■ Blue = Departing</span> <span className="dest-color">■ Yellow = Arriving</span>
-        </div>
+        <label>✈️ Airport Focus <span className="dep-color">■ DEP</span> <span className="dest-color">■ DEST</span></label>
         <div className="combobox" onClick={(e) => e.stopPropagation()}>
           <input
             type="text"
