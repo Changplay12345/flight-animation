@@ -51,6 +51,7 @@ export function IlsLayer() {
   const ilsWaypointsVisible = useFlightStore(state => state.ilsWaypointsVisible);
   const ilsOpacity = useFlightStore(state => state.ilsOpacity);
   const ilsLineWeight = useFlightStore(state => state.ilsLineWeight);
+  const ilsAirportFilter = useFlightStore(state => state.ilsAirportFilter);
   const lightMode = useFlightStore(state => state.lightMode);
   
   const legsLayersRef = useRef<L.Layer[]>([]);
@@ -97,8 +98,12 @@ export function IlsLayer() {
 
     const lineColor = lightMode ? '#2e7d32' : '#66bb6a';
 
+    // Parse airport filter
+    const filterAirports = ilsAirportFilter.split(',').map(s => s.trim()).filter(s => s.length > 0);
+    
     legsData.features.forEach((feature) => {
       if (!isThailandAirport(feature.properties.airport_identifier)) return;
+      if (filterAirports.length > 0 && !filterAirports.some(f => feature.properties.airport_identifier.includes(f))) return;
       
       if (feature.geometry.type === 'MultiLineString') {
         feature.geometry.coordinates.forEach((lineCoords) => {
@@ -121,7 +126,7 @@ export function IlsLayer() {
         if (map.hasLayer(layer)) map.removeLayer(layer);
       });
     };
-  }, [ilsVisible, ilsLegsVisible, lightMode, map, legsData, ilsOpacity, ilsLineWeight]);
+  }, [ilsVisible, ilsLegsVisible, lightMode, map, legsData, ilsOpacity, ilsLineWeight, ilsAirportFilter]);
 
   // Render ILS waypoints
   useEffect(() => {
@@ -135,11 +140,17 @@ export function IlsLayer() {
     const textColor = lightMode ? '#1b5e20' : '#a5d6a7';
     const markerColor = lightMode ? '#43a047' : '#81c784';
 
+    // Parse airport filter
+    const filterAirports = ilsAirportFilter.split(',').map(s => s.trim()).filter(s => s.length > 0);
+
     const processedWaypoints = new Set<string>();
 
     waypointData.features.forEach((feature) => {
       const name = feature.properties.waypoint_identifier;
       if (!name) return;
+      
+      // Apply airport filter
+      if (filterAirports.length > 0 && feature.properties.airport_identifier && !filterAirports.some(f => feature.properties.airport_identifier?.includes(f))) return;
       
       const waypointKey = `${name}`;
       if (processedWaypoints.has(waypointKey)) return;
@@ -209,7 +220,7 @@ export function IlsLayer() {
         if (map.hasLayer(layer)) map.removeLayer(layer);
       });
     };
-  }, [ilsVisible, ilsWaypointsVisible, lightMode, map, waypointData]);
+  }, [ilsVisible, ilsWaypointsVisible, lightMode, map, waypointData, ilsAirportFilter]);
 
   return null;
 }

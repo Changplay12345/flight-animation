@@ -50,6 +50,7 @@ export function SidLayer() {
   const sidWaypointsVisible = useFlightStore(state => state.sidWaypointsVisible);
   const sidOpacity = useFlightStore(state => state.sidOpacity);
   const sidLineWeight = useFlightStore(state => state.sidLineWeight);
+  const sidAirportFilter = useFlightStore(state => state.sidAirportFilter);
   const lightMode = useFlightStore(state => state.lightMode);
   
   const lineLayersRef = useRef<L.Layer[]>([]);
@@ -97,9 +98,15 @@ export function SidLayer() {
 
     const lineColor = lightMode ? '#c2185b' : '#ff4081';
 
+    // Parse airport filter (comma-separated list)
+    const filterAirports = sidAirportFilter.split(',').map(s => s.trim()).filter(s => s.length > 0);
+    
     lineData.features.forEach((feature) => {
       // Only show Thailand airports (VT prefix)
       if (!isThailandAirport(feature.properties.airport_identifier)) return;
+      
+      // Apply airport filter if specified
+      if (filterAirports.length > 0 && !filterAirports.some(f => feature.properties.airport_identifier.includes(f))) return;
       
       if (feature.geometry.type === 'MultiLineString') {
         feature.geometry.coordinates.forEach((lineCoords) => {
@@ -123,7 +130,7 @@ export function SidLayer() {
         if (map.hasLayer(layer)) map.removeLayer(layer);
       });
     };
-  }, [sidVisible, lightMode, map, lineData, sidOpacity, sidLineWeight]);
+  }, [sidVisible, lightMode, map, lineData, sidOpacity, sidLineWeight, sidAirportFilter]);
 
   // Render SID waypoints (yellow 4-point star with labels)
   useEffect(() => {
@@ -137,12 +144,18 @@ export function SidLayer() {
     const textColor = lightMode ? '#c2185b' : '#ff80ab';
     const starColor = lightMode ? '#f9a825' : '#ffeb3b';
 
+    // Parse airport filter (comma-separated list)
+    const filterAirports = sidAirportFilter.split(',').map(s => s.trim()).filter(s => s.length > 0);
+
     // Track unique waypoints to avoid duplicates
     const processedWaypoints = new Set<string>();
 
     waypointData.features.forEach((feature) => {
       const name = feature.properties.waypoint_identifier;
       if (!name) return;
+      
+      // Apply airport filter if specified
+      if (filterAirports.length > 0 && feature.properties.airport_identifier && !filterAirports.some(f => feature.properties.airport_identifier?.includes(f))) return;
       
       // Skip if already processed
       const waypointKey = `${name}`;
@@ -254,7 +267,7 @@ export function SidLayer() {
         if (map.hasLayer(layer)) map.removeLayer(layer);
       });
     };
-  }, [sidVisible, sidWaypointsVisible, lightMode, map, waypointData]);
+  }, [sidVisible, sidWaypointsVisible, lightMode, map, waypointData, sidAirportFilter]);
 
   return null;
 }

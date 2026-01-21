@@ -200,10 +200,7 @@ function Toolbar() {
       <TrailDecayControl />
       <SectorsDropdown />
       <AirwayDropdown />
-      <SidDropdown />
-      <StarDropdown />
-      <PbnDropdown />
-      <IlsDropdown />
+      <OptionsButton />
       <button 
         id="btn-gates" 
         title="Toggle Airport Gates"
@@ -797,6 +794,271 @@ function IlsDropdown() {
       </button>
       {dropdownContent}
     </>
+  );
+}
+
+// ============== Options Button ==============
+function OptionsButton() {
+  const optionsPanelOpen = useFlightStore(state => state.optionsPanelOpen);
+  const setOptionsPanelOpen = useFlightStore(state => state.setOptionsPanelOpen);
+  const uiHidden = useFlightStore(state => state.uiHidden);
+  
+  if (uiHidden) return null;
+  
+  return (
+    <button 
+      id="btn-options" 
+      title="Layer Options (SID/STAR/PBN/ILS)"
+      className={optionsPanelOpen ? 'active' : ''}
+      onClick={() => setOptionsPanelOpen(!optionsPanelOpen)}
+    >
+      ⚙️ Options
+    </button>
+  );
+}
+
+// ============== Options Panel (Chrome-style tabs for SID/STAR/PBN/ILS) ==============
+function OptionsPanel() {
+  const optionsPanelOpen = useFlightStore(state => state.optionsPanelOpen);
+  const setOptionsPanelOpen = useFlightStore(state => state.setOptionsPanelOpen);
+  const optionsPanelTab = useFlightStore(state => state.optionsPanelTab);
+  const setOptionsPanelTab = useFlightStore(state => state.setOptionsPanelTab);
+  const uiHidden = useFlightStore(state => state.uiHidden);
+  
+  // SID state
+  const sidVisible = useFlightStore(state => state.sidVisible);
+  const setSidVisible = useFlightStore(state => state.setSidVisible);
+  const sidWaypointsVisible = useFlightStore(state => state.sidWaypointsVisible);
+  const setSidWaypointsVisible = useFlightStore(state => state.setSidWaypointsVisible);
+  const sidOpacity = useFlightStore(state => state.sidOpacity);
+  const setSidOpacity = useFlightStore(state => state.setSidOpacity);
+  const sidLineWeight = useFlightStore(state => state.sidLineWeight);
+  const setSidLineWeight = useFlightStore(state => state.setSidLineWeight);
+  const sidAirportFilter = useFlightStore(state => state.sidAirportFilter);
+  const setSidAirportFilter = useFlightStore(state => state.setSidAirportFilter);
+  
+  // STAR state
+  const starVisible = useFlightStore(state => state.starVisible);
+  const setStarVisible = useFlightStore(state => state.setStarVisible);
+  const starWaypointsVisible = useFlightStore(state => state.starWaypointsVisible);
+  const setStarWaypointsVisible = useFlightStore(state => state.setStarWaypointsVisible);
+  const starOpacity = useFlightStore(state => state.starOpacity);
+  const setStarOpacity = useFlightStore(state => state.setStarOpacity);
+  const starLineWeight = useFlightStore(state => state.starLineWeight);
+  const setStarLineWeight = useFlightStore(state => state.setStarLineWeight);
+  const starAirportFilter = useFlightStore(state => state.starAirportFilter);
+  const setStarAirportFilter = useFlightStore(state => state.setStarAirportFilter);
+  
+  // PBN state
+  const pbnVisible = useFlightStore(state => state.pbnVisible);
+  const setPbnVisible = useFlightStore(state => state.setPbnVisible);
+  const pbnLegsVisible = useFlightStore(state => state.pbnLegsVisible);
+  const setPbnLegsVisible = useFlightStore(state => state.setPbnLegsVisible);
+  const pbnWaypointsVisible = useFlightStore(state => state.pbnWaypointsVisible);
+  const setPbnWaypointsVisible = useFlightStore(state => state.setPbnWaypointsVisible);
+  const pbnOpacity = useFlightStore(state => state.pbnOpacity);
+  const setPbnOpacity = useFlightStore(state => state.setPbnOpacity);
+  const pbnLineWeight = useFlightStore(state => state.pbnLineWeight);
+  const setPbnLineWeight = useFlightStore(state => state.setPbnLineWeight);
+  const pbnAirportFilter = useFlightStore(state => state.pbnAirportFilter);
+  const setPbnAirportFilter = useFlightStore(state => state.setPbnAirportFilter);
+  
+  // ILS state
+  const ilsVisible = useFlightStore(state => state.ilsVisible);
+  const setIlsVisible = useFlightStore(state => state.setIlsVisible);
+  const ilsLegsVisible = useFlightStore(state => state.ilsLegsVisible);
+  const setIlsLegsVisible = useFlightStore(state => state.setIlsLegsVisible);
+  const ilsWaypointsVisible = useFlightStore(state => state.ilsWaypointsVisible);
+  const setIlsWaypointsVisible = useFlightStore(state => state.setIlsWaypointsVisible);
+  const ilsOpacity = useFlightStore(state => state.ilsOpacity);
+  const setIlsOpacity = useFlightStore(state => state.setIlsOpacity);
+  const ilsLineWeight = useFlightStore(state => state.ilsLineWeight);
+  const setIlsLineWeight = useFlightStore(state => state.setIlsLineWeight);
+  const ilsAirportFilter = useFlightStore(state => state.ilsAirportFilter);
+  const setIlsAirportFilter = useFlightStore(state => state.setIlsAirportFilter);
+
+  if (uiHidden || !optionsPanelOpen) return null;
+
+  const tabs = [
+    { id: 'sid' as const, label: 'SID', icon: '🛫' },
+    { id: 'star' as const, label: 'STAR', icon: '🛬' },
+    { id: 'pbn' as const, label: 'PBN', icon: '📍' },
+    { id: 'ils' as const, label: 'ILS', icon: '📻' },
+  ];
+
+  return (
+    <div id="options-panel">
+      <div className="options-header">
+        <span>⚙️ Layer Options</span>
+        <button onClick={() => setOptionsPanelOpen(false)}>×</button>
+      </div>
+      
+      <div className="options-tabs">
+        {tabs.map(tab => (
+          <button
+            key={tab.id}
+            className={`options-tab ${optionsPanelTab === tab.id ? 'active' : ''}`}
+            onClick={() => setOptionsPanelTab(tab.id)}
+          >
+            {tab.icon} {tab.label}
+          </button>
+        ))}
+      </div>
+      
+      <div className="options-content">
+        {optionsPanelTab === 'sid' && (
+          <div className="options-section">
+            <div className="options-row">
+              <span onClick={() => setSidVisible(!sidVisible)}>SID Routes</span>
+              <input type="checkbox" checked={sidVisible} onChange={(e) => setSidVisible(e.target.checked)} />
+            </div>
+            <div className="options-row">
+              <span onClick={() => setSidWaypointsVisible(!sidWaypointsVisible)}>Waypoints</span>
+              <input type="checkbox" checked={sidWaypointsVisible} onChange={(e) => setSidWaypointsVisible(e.target.checked)} />
+            </div>
+            <div className="options-row column">
+              <span>Airport Filter</span>
+              <input
+                type="text"
+                placeholder="e.g. VTBS, VTBD..."
+                value={sidAirportFilter}
+                onChange={(e) => setSidAirportFilter(e.target.value.toUpperCase())}
+              />
+            </div>
+            <div className="options-row column">
+              <span>Opacity</span>
+              <div className="slider-row">
+                <input type="range" min="0.1" max="1" step="0.1" value={sidOpacity} onChange={(e) => setSidOpacity(parseFloat(e.target.value))} />
+                <span className="slider-value">{(sidOpacity * 100).toFixed(0)}%</span>
+              </div>
+            </div>
+            <div className="options-row column">
+              <span>Line Thickness</span>
+              <div className="slider-row">
+                <input type="range" min="0.5" max="5" step="0.5" value={sidLineWeight} onChange={(e) => setSidLineWeight(parseFloat(e.target.value))} />
+                <span className="slider-value">{sidLineWeight}px</span>
+              </div>
+            </div>
+          </div>
+        )}
+        
+        {optionsPanelTab === 'star' && (
+          <div className="options-section">
+            <div className="options-row">
+              <span onClick={() => setStarVisible(!starVisible)}>STAR Routes</span>
+              <input type="checkbox" checked={starVisible} onChange={(e) => setStarVisible(e.target.checked)} />
+            </div>
+            <div className="options-row">
+              <span onClick={() => setStarWaypointsVisible(!starWaypointsVisible)}>Waypoints</span>
+              <input type="checkbox" checked={starWaypointsVisible} onChange={(e) => setStarWaypointsVisible(e.target.checked)} />
+            </div>
+            <div className="options-row column">
+              <span>Airport Filter</span>
+              <input
+                type="text"
+                placeholder="e.g. VTBS, VTBD..."
+                value={starAirportFilter}
+                onChange={(e) => setStarAirportFilter(e.target.value.toUpperCase())}
+              />
+            </div>
+            <div className="options-row column">
+              <span>Opacity</span>
+              <div className="slider-row">
+                <input type="range" min="0.1" max="1" step="0.1" value={starOpacity} onChange={(e) => setStarOpacity(parseFloat(e.target.value))} />
+                <span className="slider-value">{(starOpacity * 100).toFixed(0)}%</span>
+              </div>
+            </div>
+            <div className="options-row column">
+              <span>Line Thickness</span>
+              <div className="slider-row">
+                <input type="range" min="0.5" max="5" step="0.5" value={starLineWeight} onChange={(e) => setStarLineWeight(parseFloat(e.target.value))} />
+                <span className="slider-value">{starLineWeight}px</span>
+              </div>
+            </div>
+          </div>
+        )}
+        
+        {optionsPanelTab === 'pbn' && (
+          <div className="options-section">
+            <div className="options-row">
+              <span onClick={() => setPbnVisible(!pbnVisible)}>PBN Enable</span>
+              <input type="checkbox" checked={pbnVisible} onChange={(e) => setPbnVisible(e.target.checked)} />
+            </div>
+            <div className="options-row">
+              <span onClick={() => setPbnLegsVisible(!pbnLegsVisible)}>IAP Legs</span>
+              <input type="checkbox" checked={pbnLegsVisible} onChange={(e) => setPbnLegsVisible(e.target.checked)} />
+            </div>
+            <div className="options-row">
+              <span onClick={() => setPbnWaypointsVisible(!pbnWaypointsVisible)}>Waypoints</span>
+              <input type="checkbox" checked={pbnWaypointsVisible} onChange={(e) => setPbnWaypointsVisible(e.target.checked)} />
+            </div>
+            <div className="options-row column">
+              <span>Airport Filter</span>
+              <input
+                type="text"
+                placeholder="e.g. VTBS, VTBD..."
+                value={pbnAirportFilter}
+                onChange={(e) => setPbnAirportFilter(e.target.value.toUpperCase())}
+              />
+            </div>
+            <div className="options-row column">
+              <span>Opacity</span>
+              <div className="slider-row">
+                <input type="range" min="0.1" max="1" step="0.1" value={pbnOpacity} onChange={(e) => setPbnOpacity(parseFloat(e.target.value))} />
+                <span className="slider-value">{(pbnOpacity * 100).toFixed(0)}%</span>
+              </div>
+            </div>
+            <div className="options-row column">
+              <span>Line Thickness</span>
+              <div className="slider-row">
+                <input type="range" min="0.5" max="5" step="0.5" value={pbnLineWeight} onChange={(e) => setPbnLineWeight(parseFloat(e.target.value))} />
+                <span className="slider-value">{pbnLineWeight}px</span>
+              </div>
+            </div>
+          </div>
+        )}
+        
+        {optionsPanelTab === 'ils' && (
+          <div className="options-section">
+            <div className="options-row">
+              <span onClick={() => setIlsVisible(!ilsVisible)}>ILS Enable</span>
+              <input type="checkbox" checked={ilsVisible} onChange={(e) => setIlsVisible(e.target.checked)} />
+            </div>
+            <div className="options-row">
+              <span onClick={() => setIlsLegsVisible(!ilsLegsVisible)}>ILS Legs</span>
+              <input type="checkbox" checked={ilsLegsVisible} onChange={(e) => setIlsLegsVisible(e.target.checked)} />
+            </div>
+            <div className="options-row">
+              <span onClick={() => setIlsWaypointsVisible(!ilsWaypointsVisible)}>Waypoints</span>
+              <input type="checkbox" checked={ilsWaypointsVisible} onChange={(e) => setIlsWaypointsVisible(e.target.checked)} />
+            </div>
+            <div className="options-row column">
+              <span>Airport Filter</span>
+              <input
+                type="text"
+                placeholder="e.g. VTBS, VTBD..."
+                value={ilsAirportFilter}
+                onChange={(e) => setIlsAirportFilter(e.target.value.toUpperCase())}
+              />
+            </div>
+            <div className="options-row column">
+              <span>Opacity</span>
+              <div className="slider-row">
+                <input type="range" min="0.1" max="1" step="0.1" value={ilsOpacity} onChange={(e) => setIlsOpacity(parseFloat(e.target.value))} />
+                <span className="slider-value">{(ilsOpacity * 100).toFixed(0)}%</span>
+              </div>
+            </div>
+            <div className="options-row column">
+              <span>Line Thickness</span>
+              <div className="slider-row">
+                <input type="range" min="0.5" max="5" step="0.5" value={ilsLineWeight} onChange={(e) => setIlsLineWeight(parseFloat(e.target.value))} />
+                <span className="slider-value">{ilsLineWeight}px</span>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
   );
 }
 
@@ -2676,6 +2938,7 @@ function App() {
       <FlightMap lightMode={lightMode} satelliteMode={satelliteMode} />
       <FlightPanel />
       <FilterPanel />
+      <OptionsPanel />
       <FLLegend />
       <FlightTooltip />
       <AirportInfoPanel />

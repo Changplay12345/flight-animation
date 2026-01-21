@@ -2611,3 +2611,268 @@ body.light-mode #btn-ils.active {
   color: #fff;
   border-color: #2e7d32;
 }
+
+/* ============== Options Panel ============== */
+#options-panel {
+  position: fixed;
+  top: 100px;
+  left: 10px;
+  width: 320px;
+  max-height: calc(100vh - 120px);
+  background: rgba(26, 26, 46, 0.95);
+  border: 1px solid #3a3a5a;
+  border-radius: 10px;
+  z-index: 1500;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  backdrop-filter: blur(10px);
+}
+
+.options-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 15px;
+  background: rgba(0,0,0,0.2);
+  border-bottom: 1px solid #3a3a5a;
+  color: #fff;
+  font-weight: 600;
+}
+
+.options-header button {
+  background: none;
+  border: none;
+  color: #888;
+  font-size: 18px;
+  cursor: pointer;
+  padding: 0 5px;
+}
+
+.options-header button:hover {
+  color: #fff;
+}
+
+.options-tabs {
+  display: flex;
+  background: rgba(0,0,0,0.15);
+  border-bottom: 1px solid #3a3a5a;
+}
+
+.options-tab {
+  flex: 1;
+  padding: 10px 8px;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: #888;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.options-tab:hover {
+  background: rgba(255,255,255,0.05);
+  color: #fff;
+}
+
+.options-tab.active {
+  color: #4a9eff;
+  border-bottom-color: #4a9eff;
+  background: rgba(74, 158, 255, 0.1);
+}
+
+.options-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px 15px;
+}
+
+.options-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.options-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.options-row span {
+  color: #ccc;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.options-row span:hover {
+  color: #fff;
+}
+
+.options-row.column {
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.options-row.column span {
+  color: #888;
+  font-size: 11px;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+  cursor: default;
+}
+
+.options-row.column span:hover {
+  color: #888;
+}
+
+.options-row input[type="text"] {
+  width: 100%;
+  padding: 8px 10px;
+  background: rgba(0,0,0,0.3);
+  border: 1px solid #3a3a5a;
+  border-radius: 5px;
+  color: #fff;
+  font-size: 13px;
+}
+
+.options-row input[type="text"]:focus {
+  outline: none;
+  border-color: #4a9eff;
+}
+
+.options-row input[type="text"]::placeholder {
+  color: #666;
+}
+
+.options-row input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+.slider-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.slider-row input[type="range"] {
+  flex: 1;
+  height: 4px;
+  -webkit-appearance: none;
+  background: #3a3a5a;
+  border-radius: 2px;
+  cursor: pointer;
+}
+
+.slider-row input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 14px;
+  height: 14px;
+  background: #4a9eff;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.slider-value {
+  font-size: 11px;
+  color: #888;
+  min-width: 40px;
+  text-align: right;
+}
+
+/* Options Button */
+#btn-options {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+  border: 1px solid #667eea;
+}
+#btn-options:hover {
+  background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+}
+#btn-options.active {
+  background: linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%);
+  box-shadow: 0 0 8px rgba(102, 126, 234, 0.5);
+}
+
+/* Light mode for Options Panel */
+body.light-mode #options-panel {
+  background: rgba(255, 255, 255, 0.95);
+  border-color: #ddd;
+}
+
+body.light-mode .options-header {
+  background: #f5f5f5;
+  color: #333;
+  border-bottom-color: #ddd;
+}
+
+body.light-mode .options-header button {
+  color: #666;
+}
+
+body.light-mode .options-header button:hover {
+  color: #333;
+}
+
+body.light-mode .options-tabs {
+  background: #f0f0f0;
+  border-bottom-color: #ddd;
+}
+
+body.light-mode .options-tab {
+  color: #666;
+}
+
+body.light-mode .options-tab:hover {
+  background: rgba(0,0,0,0.05);
+  color: #333;
+}
+
+body.light-mode .options-tab.active {
+  color: #2196f3;
+  border-bottom-color: #2196f3;
+  background: rgba(33, 150, 243, 0.1);
+}
+
+body.light-mode .options-row span {
+  color: #333;
+}
+
+body.light-mode .options-row.column span {
+  color: #666;
+}
+
+body.light-mode .options-row.column span:hover {
+  color: #666;
+}
+
+body.light-mode .options-row input[type="text"] {
+  background: #fff;
+  border-color: #ddd;
+  color: #333;
+}
+
+body.light-mode .options-row input[type="text"]:focus {
+  border-color: #2196f3;
+}
+
+body.light-mode .slider-row input[type="range"] {
+  background: #ddd;
+}
+
+body.light-mode .slider-row input[type="range"]::-webkit-slider-thumb {
+  background: #2196f3;
+}
+
+body.light-mode .slider-value {
+  color: #666;
+}
+
+body.light-mode #btn-options {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+}

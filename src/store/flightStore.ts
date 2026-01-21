@@ -75,17 +75,23 @@ interface FlightStore {
   airwayVorVisible: boolean;
   airwayReportingVisible: boolean;
   
+  // Options Panel
+  optionsPanelOpen: boolean;
+  optionsPanelTab: 'sid' | 'star' | 'pbn' | 'ils';
+  
   // SID (Standard Instrument Departure)
   sidVisible: boolean;
   sidWaypointsVisible: boolean;
   sidOpacity: number;
   sidLineWeight: number;
+  sidAirportFilter: string;
   
   // STAR (Standard Terminal Arrival Route)
   starVisible: boolean;
   starWaypointsVisible: boolean;
   starOpacity: number;
   starLineWeight: number;
+  starAirportFilter: string;
   
   // PBN (Performance Based Navigation)
   pbnVisible: boolean;
@@ -93,6 +99,7 @@ interface FlightStore {
   pbnWaypointsVisible: boolean;
   pbnOpacity: number;
   pbnLineWeight: number;
+  pbnAirportFilter: string;
   
   // ILS (Instrument Landing System)
   ilsVisible: boolean;
@@ -100,6 +107,7 @@ interface FlightStore {
   ilsWaypointsVisible: boolean;
   ilsOpacity: number;
   ilsLineWeight: number;
+  ilsAirportFilter: string;
   
   // Sector Layers (bacc, ctr, fir_world, bacc_subsector, pdr, tma)
   sectorLayers: Record<string, {
@@ -145,27 +153,34 @@ interface FlightStore {
   setAirwayLabelsVisible: (visible: boolean) => void;
   setAirwayVorVisible: (visible: boolean) => void;
   setAirwayReportingVisible: (visible: boolean) => void;
+  setOptionsPanelOpen: (open: boolean) => void;
+  setOptionsPanelTab: (tab: 'sid' | 'star' | 'pbn' | 'ils') => void;
+  
   setSidVisible: (visible: boolean) => void;
   setSidWaypointsVisible: (visible: boolean) => void;
   setSidOpacity: (opacity: number) => void;
   setSidLineWeight: (weight: number) => void;
+  setSidAirportFilter: (filter: string) => void;
   
   setStarVisible: (visible: boolean) => void;
   setStarWaypointsVisible: (visible: boolean) => void;
   setStarOpacity: (opacity: number) => void;
   setStarLineWeight: (weight: number) => void;
+  setStarAirportFilter: (filter: string) => void;
   
   setPbnVisible: (visible: boolean) => void;
   setPbnLegsVisible: (visible: boolean) => void;
   setPbnWaypointsVisible: (visible: boolean) => void;
   setPbnOpacity: (opacity: number) => void;
   setPbnLineWeight: (weight: number) => void;
+  setPbnAirportFilter: (filter: string) => void;
   
   setIlsVisible: (visible: boolean) => void;
   setIlsLegsVisible: (visible: boolean) => void;
   setIlsWaypointsVisible: (visible: boolean) => void;
   setIlsOpacity: (opacity: number) => void;
   setIlsLineWeight: (weight: number) => void;
+  setIlsAirportFilter: (filter: string) => void;
   
   setSectorLayerVisible: (layer: string, visible: boolean) => void;
   setSectorLayerLabels: (layer: string, visible: boolean) => void;
@@ -224,17 +239,23 @@ export const useFlightStore = create<FlightStore>((set, get) => ({
   airwayVorVisible: false,
   airwayReportingVisible: false,
   
+  // Options Panel
+  optionsPanelOpen: false,
+  optionsPanelTab: 'sid' as const,
+  
   // SID
   sidVisible: false,
   sidWaypointsVisible: false,
   sidOpacity: 0.7,
   sidLineWeight: 1,
+  sidAirportFilter: '',
   
   // STAR
   starVisible: false,
   starWaypointsVisible: false,
   starOpacity: 0.7,
   starLineWeight: 1,
+  starAirportFilter: '',
   
   // PBN
   pbnVisible: false,
@@ -242,6 +263,7 @@ export const useFlightStore = create<FlightStore>((set, get) => ({
   pbnWaypointsVisible: false,
   pbnOpacity: 0.7,
   pbnLineWeight: 1,
+  pbnAirportFilter: '',
   
   // ILS
   ilsVisible: false,
@@ -249,6 +271,7 @@ export const useFlightStore = create<FlightStore>((set, get) => ({
   ilsWaypointsVisible: false,
   ilsOpacity: 0.7,
   ilsLineWeight: 1,
+  ilsAirportFilter: '',
   
   // Sector Layers
   sectorLayers: {
@@ -405,27 +428,35 @@ export const useFlightStore = create<FlightStore>((set, get) => ({
   setAirwayLabelsVisible: (visible) => set({ airwayLabelsVisible: visible }),
   setAirwayVorVisible: (visible) => set({ airwayVorVisible: visible }),
   setAirwayReportingVisible: (visible) => set({ airwayReportingVisible: visible }),
+  
+  setOptionsPanelOpen: (open) => set({ optionsPanelOpen: open }),
+  setOptionsPanelTab: (tab) => set({ optionsPanelTab: tab }),
+  
   setSidVisible: (visible) => set({ sidVisible: visible }),
   setSidWaypointsVisible: (visible) => set({ sidWaypointsVisible: visible }),
   setSidOpacity: (opacity) => set({ sidOpacity: opacity }),
   setSidLineWeight: (weight) => set({ sidLineWeight: weight }),
+  setSidAirportFilter: (filter) => set({ sidAirportFilter: filter }),
   
   setStarVisible: (visible) => set({ starVisible: visible }),
   setStarWaypointsVisible: (visible) => set({ starWaypointsVisible: visible }),
   setStarOpacity: (opacity) => set({ starOpacity: opacity }),
   setStarLineWeight: (weight) => set({ starLineWeight: weight }),
+  setStarAirportFilter: (filter) => set({ starAirportFilter: filter }),
   
   setPbnVisible: (visible) => set({ pbnVisible: visible }),
   setPbnLegsVisible: (visible) => set({ pbnLegsVisible: visible }),
   setPbnWaypointsVisible: (visible) => set({ pbnWaypointsVisible: visible }),
   setPbnOpacity: (opacity) => set({ pbnOpacity: opacity }),
   setPbnLineWeight: (weight) => set({ pbnLineWeight: weight }),
+  setPbnAirportFilter: (filter) => set({ pbnAirportFilter: filter }),
   
   setIlsVisible: (visible) => set({ ilsVisible: visible }),
   setIlsLegsVisible: (visible) => set({ ilsLegsVisible: visible }),
   setIlsWaypointsVisible: (visible) => set({ ilsWaypointsVisible: visible }),
   setIlsOpacity: (opacity) => set({ ilsOpacity: opacity }),
   setIlsLineWeight: (weight) => set({ ilsLineWeight: weight }),
+  setIlsAirportFilter: (filter) => set({ ilsAirportFilter: filter }),
   
   setSectorLayerVisible: (layer, visible) => set(state => ({
     sectorLayers: { ...state.sectorLayers, [layer]: { ...state.sectorLayers[layer], visible } }
