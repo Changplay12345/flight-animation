@@ -529,9 +529,9 @@ function AirportsTabContent() {
   const runwaysVisible = useAirportStore(state => state.runwaysVisible);
   const setRunwaysVisible = useAirportStore(state => state.setRunwaysVisible);
   
-  // Main airports = IFR capable (ifr_capability === 'Y')
-  const mainAirports = useMemo(() => airports.filter(a => a.ifr_capability === 'Y'), [airports]);
-  const subAirports = useMemo(() => airports.filter(a => a.ifr_capability !== 'Y'), [airports]);
+  // Main airports = Main column === 'Y'
+  const mainAirports = useMemo(() => airports.filter(a => a.Main === 'Y'), [airports]);
+  const subAirports = useMemo(() => airports.filter(a => a.Main !== 'Y'), [airports]);
   
   // Filter by search term
   const filterAirports = (list: typeof airports) => {

@@ -89,7 +89,7 @@ export const useAirportStore = create<AirportStore>((set) => ({
 
 // Parse airport CSV
 export async function loadAirports(): Promise<Airport[]> {
-  const response = await fetch('/Airport.csv');
+  const response = await fetch('/airports/Airport_with_AP_Main.csv');
   const text = await response.text();
   const lines = text.trim().split('\n');
   const headers = lines[0].split(',');
