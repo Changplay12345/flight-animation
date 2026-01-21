@@ -20,6 +20,7 @@ export function FlightTagsLayer() {
   const flightMeta = useFlightStore(state => state.flightMeta);
   const timeline = useFlightStore(state => state.timeline);
   const lightMode = useFlightStore(state => state.lightMode);
+  const airportFilterCode = useFlightStore(state => state.airportFilterCode);
   
   // Get current zoom level for size scaling
   const getTagSize = (zoom: number): { fontSize: number; padding: string } => {
@@ -42,6 +43,13 @@ export function FlightTagsLayer() {
     Object.entries(flights).forEach(([key, points]) => {
       const meta = flightMeta[key];
       if (!meta?.visible) return;
+      
+      // When airport filter is active, only show tags for matching flights
+      if (airportFilterCode) {
+        const matchesDep = meta.dep?.toUpperCase() === airportFilterCode.toUpperCase();
+        const matchesDest = meta.dest?.toUpperCase() === airportFilterCode.toUpperCase();
+        if (!matchesDep && !matchesDest) return;
+      }
       
       const flightPoints = points as FlightPoint[];
       if (!flightPoints || flightPoints.length === 0) return;
@@ -77,7 +85,7 @@ export function FlightTagsLayer() {
     });
     
     return result;
-  }, [flights, flightMeta, timeline.current]);
+  }, [flights, flightMeta, timeline.current, airportFilterCode]);
 
   // Update tags when visibility, time, or zoom changes
   useEffect(() => {
