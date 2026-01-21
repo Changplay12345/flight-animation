@@ -887,8 +887,8 @@ body.light-mode .airway-dropdown .opacity-value {
 }
 
 .airport-filter-section {
-  background: rgba(0, 136, 255, 0.05);
-  border: 1px solid rgba(0, 136, 255, 0.2);
+  background: transparent;
+  border: 1px solid #3a3a5a;
   border-radius: 6px;
   margin: 8px 12px;
   padding: 12px !important;
@@ -1827,8 +1827,8 @@ body.light-mode .filter-buttons button:hover {
 }
 
 body.light-mode .airport-filter-section {
-  background: rgba(33, 150, 243, 0.08);
-  border-color: rgba(33, 150, 243, 0.3);
+  background: transparent;
+  border-color: #ddd;
 }
 
 body.light-mode .airport-filter-section label .dep-color {
@@ -1837,6 +1837,27 @@ body.light-mode .airport-filter-section label .dep-color {
 
 body.light-mode .airport-filter-section label .dest-color {
   color: #cc8800;
+}
+
+body.light-mode .dropdown-list {
+  background: #fff;
+  border-color: #ddd;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+body.light-mode .dropdown-item {
+  color: #333;
+  border-bottom-color: #eee;
+}
+
+body.light-mode .dropdown-item:hover {
+  background: #f0f0f0;
+  color: #000;
+}
+
+body.light-mode .dropdown-count {
+  background: #e0e0e0;
+  color: #333;
 }
 
 body.light-mode .combobox .clear-btn {
