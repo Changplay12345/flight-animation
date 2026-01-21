@@ -84,32 +84,104 @@ function FilePicker({ onFileLoad, setLoadingText }: { onFileLoad: () => void; se
   );
 }
 
-// ============== Trail Decay Control ==============
-function TrailDecayControl() {
+// ============== Trails Dropdown ==============
+function TrailsDropdown() {
+  const [isOpen, setIsOpen] = useState(false);
+  const [dropdownPos, setDropdownPos] = useState<{ top: number; left: number } | null>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  
+  const trailsVisible = useFlightStore(state => state.trailsVisible);
+  const setTrailsVisible = useFlightStore(state => state.setTrailsVisible);
+  const flTrailsVisible = useFlightStore(state => state.flTrailsVisible);
+  const setFlTrailsVisible = useFlightStore(state => state.setFlTrailsVisible);
+  const showFullTrails = useFlightStore(state => state.showFullTrails);
+  const setShowFullTrails = useFlightStore(state => state.setShowFullTrails);
   const trailDecayMinutes = useFlightStore(state => state.trailDecayMinutes);
   const setTrailDecayMinutes = useFlightStore(state => state.setTrailDecayMinutes);
-  const showFullTrails = useFlightStore(state => state.showFullTrails);
+  const tagsVisible = useFlightStore(state => state.tagsVisible);
+  const setTagsVisible = useFlightStore(state => state.setTagsVisible);
+  const uiHidden = useFlightStore(state => state.uiHidden);
   
-  // Don't show when full trails mode is on
-  if (showFullTrails) return null;
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node) &&
+          buttonRef.current && !buttonRef.current.contains(e.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isOpen]);
+  
+  const handleToggle = () => {
+    if (!isOpen && buttonRef.current) {
+      const rect = buttonRef.current.getBoundingClientRect();
+      setDropdownPos({ top: rect.bottom + 4, left: rect.left });
+    }
+    setIsOpen(!isOpen);
+  };
+  
+  if (uiHidden) return null;
+  
+  const dropdownContent = isOpen && dropdownPos && createPortal(
+    <div 
+      ref={dropdownRef}
+      className="trails-dropdown"
+      style={{ position: 'fixed', top: dropdownPos.top, left: dropdownPos.left, zIndex: 999999 }}
+    >
+      <div className="trails-option-row">
+        <span onClick={() => setTrailsVisible(!trailsVisible)}>Show Trails</span>
+        <input type="checkbox" checked={trailsVisible} onChange={(e) => setTrailsVisible(e.target.checked)} />
+      </div>
+      <div className="trails-option-row">
+        <span onClick={() => setFlTrailsVisible(!flTrailsVisible)}>FL Color Trails</span>
+        <input type="checkbox" checked={flTrailsVisible} onChange={(e) => setFlTrailsVisible(e.target.checked)} />
+      </div>
+      <div className="trails-option-row">
+        <span onClick={() => setShowFullTrails(!showFullTrails)}>Full Trails</span>
+        <input type="checkbox" checked={showFullTrails} onChange={(e) => setShowFullTrails(e.target.checked)} />
+      </div>
+      <div className="trails-option-row">
+        <span onClick={() => setTagsVisible(!tagsVisible)}>Flight Tags</span>
+        <input type="checkbox" checked={tagsVisible} onChange={(e) => setTagsVisible(e.target.checked)} />
+      </div>
+      {!showFullTrails && (
+        <div className="trails-option-row column">
+          <span>Trail Decay</span>
+          <select 
+            value={trailDecayMinutes}
+            onChange={(e) => setTrailDecayMinutes(Number(e.target.value))}
+          >
+            <option value={1}>1 min</option>
+            <option value={2}>2 min</option>
+            <option value={5}>5 min</option>
+            <option value={10}>10 min</option>
+            <option value={15}>15 min</option>
+            <option value={30}>30 min</option>
+            <option value={60}>1 hour</option>
+            <option value={0}>No decay</option>
+          </select>
+        </div>
+      )}
+    </div>,
+    document.body
+  );
   
   return (
-    <div id="decay-control" title="Trail decay time (how long trails persist behind plane)">
-      <span>Decay:</span>
-      <select 
-        value={trailDecayMinutes}
-        onChange={(e) => setTrailDecayMinutes(Number(e.target.value))}
+    <>
+      <button 
+        ref={buttonRef}
+        id="btn-trails-dropdown" 
+        title="Trail Options"
+        className={isOpen || trailsVisible ? 'active' : ''}
+        onClick={handleToggle}
       >
-        <option value={1}>1 min</option>
-        <option value={2}>2 min</option>
-        <option value={5}>5 min</option>
-        <option value={10}>10 min</option>
-        <option value={15}>15 min</option>
-        <option value={30}>30 min</option>
-        <option value={60}>1 hour</option>
-        <option value={0}>No decay</option>
-      </select>
-    </div>
+        ✈️ Trails
+      </button>
+      {dropdownContent}
+    </>
   );
 }
 
@@ -118,23 +190,9 @@ function Toolbar() {
   const isPlaying = useFlightStore(state => state.isPlaying);
   const speedMultiplier = useFlightStore(state => state.speedMultiplier);
   const setSpeed = useFlightStore(state => state.setSpeed);
-  const trailsVisible = useFlightStore(state => state.trailsVisible);
-  const flTrailsVisible = useFlightStore(state => state.flTrailsVisible);
-  const showFullTrails = useFlightStore(state => state.showFullTrails);
-  const setTrailsVisible = useFlightStore(state => state.setTrailsVisible);
-  const setFlTrailsVisible = useFlightStore(state => state.setFlTrailsVisible);
-  const setShowFullTrails = useFlightStore(state => state.setShowFullTrails);
   const filterPanelOpen = useFlightStore(state => state.filterPanelOpen);
   const setFilterPanelOpen = useFlightStore(state => state.setFilterPanelOpen);
   const timeline = useFlightStore(state => state.timeline);
-  const lightMode = useFlightStore(state => state.lightMode);
-  const setLightMode = useFlightStore(state => state.setLightMode);
-  const satelliteMode = useFlightStore(state => state.satelliteMode);
-  const setSatelliteMode = useFlightStore(state => state.setSatelliteMode);
-  const tagsVisible = useFlightStore(state => state.tagsVisible);
-  const setTagsVisible = useFlightStore(state => state.setTagsVisible);
-  const gatesVisible = useFlightStore(state => state.gatesVisible);
-  const setGatesVisible = useFlightStore(state => state.setGatesVisible);
   
   const { play, pause, rewind } = useAnimation();
   
@@ -172,59 +230,10 @@ function Toolbar() {
           <option value="1000">x100</option>
         </select>
       </div>
-      <button 
-        id="btn-trails" 
-        title="Toggle Flight Trails"
-        className={trailsVisible ? 'active' : ''}
-        onClick={() => setTrailsVisible(!trailsVisible)}
-      >
-        Trails
-      </button>
-      <button 
-        id="btn-fl-trails" 
-        title="Toggle Flight Level Trails"
-        className={flTrailsVisible ? 'active' : ''}
-        onClick={() => setFlTrailsVisible(!flTrailsVisible)}
-      >
-        FL Trails
-      </button>
-      <label id="show-all-label" title="Show full trails or only up to current time">
-        <input 
-          type="checkbox" 
-          id="show-all-trails"
-          checked={showFullTrails}
-          onChange={(e) => setShowFullTrails(e.target.checked)}
-        />
-        <span>Full</span>
-      </label>
-      <TrailDecayControl />
+      <TrailsDropdown />
       <SectorsDropdown />
       <AirwayDropdown />
-      <OptionsButton />
-      <button 
-        id="btn-gates" 
-        title="Toggle Airport Gates"
-        className={gatesVisible ? 'active' : ''}
-        onClick={() => setGatesVisible(!gatesVisible)}
-      >
-        🚪 Gates
-      </button>
-      <AirportDropdown />
-      <button 
-        id="btn-theme" 
-        title="Toggle Light/Dark Mode"
-        onClick={() => setLightMode(!lightMode)}
-      >
-        {lightMode ? '🌙' : '☀️'}
-      </button>
-      <button 
-        id="btn-satellite" 
-        title="Toggle Satellite View"
-        className={satelliteMode ? 'active' : ''}
-        onClick={() => setSatelliteMode(!satelliteMode)}
-      >
-        🌍
-      </button>
+      <AirportButton />
       <button 
         id="btn-filter" 
         title="Filter Flights"
@@ -232,14 +241,6 @@ function Toolbar() {
         onClick={() => setFilterPanelOpen(!filterPanelOpen)}
       >
         🔍 Filter
-      </button>
-      <button 
-        id="btn-tags" 
-        title="Toggle Flight Tags"
-        className={tagsVisible ? 'active' : ''}
-        onClick={() => setTagsVisible(!tagsVisible)}
-      >
-        🏷️ Tags
       </button>
       <div id="time-display">{timeDisplay}</div>
     </div>
@@ -403,8 +404,8 @@ function AirwayDropdown() {
   );
 }
 
-// ============== Options Button ==============
-function OptionsButton() {
+// ============== Airport Button (opens Options Panel) ==============
+function AirportButton() {
   const optionsPanelOpen = useFlightStore(state => state.optionsPanelOpen);
   const setOptionsPanelOpen = useFlightStore(state => state.setOptionsPanelOpen);
   const uiHidden = useFlightStore(state => state.uiHidden);
@@ -413,12 +414,15 @@ function OptionsButton() {
   
   return (
     <button 
-      id="btn-options" 
-      title="Layer Options (SID/STAR/PBN/ILS)"
+      id="btn-airport" 
+      title="Airport & Layer Options"
       className={optionsPanelOpen ? 'active' : ''}
       onClick={() => setOptionsPanelOpen(!optionsPanelOpen)}
     >
-      ⚙️ Options
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style={{ marginRight: 6, verticalAlign: 'middle' }}>
+        <path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/>
+      </svg>
+      Airports
     </button>
   );
 }
@@ -515,7 +519,90 @@ function MultiSelectDropdown({
   );
 }
 
-// ============== Options Panel (Chrome-style tabs for SID/STAR/PBN/ILS) ==============
+// ============== Airports Tab Content ==============
+function AirportsTabContent() {
+  const airports = useAirportStore(state => state.airports);
+  const toggleAirportVisibility = useAirportStore(state => state.toggleAirportVisibility);
+  const showAllAirports = useAirportStore(state => state.showAllAirports);
+  const hideAllAirports = useAirportStore(state => state.hideAllAirports);
+  const runwaysVisible = useAirportStore(state => state.runwaysVisible);
+  const setRunwaysVisible = useAirportStore(state => state.setRunwaysVisible);
+  
+  const mainAirports = useMemo(() => airports.filter(a => a.Main === 'Y'), [airports]);
+  const subAirports = useMemo(() => airports.filter(a => a.Main !== 'Y'), [airports]);
+  
+  return (
+    <div className="options-section airports-tab">
+      <div className="options-row">
+        <span onClick={() => setRunwaysVisible(!runwaysVisible)}>Show Runways</span>
+        <input type="checkbox" checked={runwaysVisible} onChange={(e) => setRunwaysVisible(e.target.checked)} />
+      </div>
+      <div className="airport-actions">
+        <button onClick={showAllAirports}>Show All</button>
+        <button onClick={hideAllAirports}>Hide All</button>
+      </div>
+      {mainAirports.length > 0 && (
+        <>
+          <div className="airport-section-title">Main Airports</div>
+          <div className="airport-list">
+            {mainAirports.map(a => (
+              <div 
+                key={a.fid} 
+                className={`airport-list-item ${a.visible ? 'visible' : 'hidden'}`}
+                onClick={() => toggleAirportVisibility(a.fid)}
+              >
+                <span className="airport-icon">🔴</span>
+                <span className="airport-name">{a.AP || a.airport_name}</span>
+                <span className="airport-code">{a.airport_identifier}</span>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+      {subAirports.length > 0 && (
+        <>
+          <div className="airport-section-title">Sub Airports</div>
+          <div className="airport-list">
+            {subAirports.map(a => (
+              <div 
+                key={a.fid} 
+                className={`airport-list-item ${a.visible ? 'visible' : 'hidden'}`}
+                onClick={() => toggleAirportVisibility(a.fid)}
+              >
+                <span className="airport-icon">🔵</span>
+                <span className="airport-name">{a.AP || a.airport_name}</span>
+                <span className="airport-code">{a.airport_identifier}</span>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+      {airports.length === 0 && (
+        <div className="options-empty">No airports loaded</div>
+      )}
+    </div>
+  );
+}
+
+// ============== Gates Tab Content ==============
+function GatesTabContent() {
+  const gatesVisible = useFlightStore(state => state.gatesVisible);
+  const setGatesVisible = useFlightStore(state => state.setGatesVisible);
+  
+  return (
+    <div className="options-section">
+      <div className="options-row">
+        <span onClick={() => setGatesVisible(!gatesVisible)}>Show Gates</span>
+        <input type="checkbox" checked={gatesVisible} onChange={(e) => setGatesVisible(e.target.checked)} />
+      </div>
+      <div className="options-info">
+        Gates are displayed at airports when zoomed in. Toggle visibility above.
+      </div>
+    </div>
+  );
+}
+
+// ============== Options Panel (Chrome-style tabs) ==============
 interface LayerData {
   airports: string[];
   procedures: { airport: string; procedure: string }[];
@@ -643,6 +730,8 @@ function OptionsPanel() {
   if (uiHidden || !optionsPanelOpen) return null;
 
   const tabs = [
+    { id: 'airports' as const, label: 'Airports', icon: '✈️' },
+    { id: 'gates' as const, label: 'Gates', icon: '🚪' },
     { id: 'sid' as const, label: 'SID', icon: '🛫' },
     { id: 'star' as const, label: 'STAR', icon: '🛬' },
     { id: 'pbn' as const, label: 'PBN', icon: '📍' },
@@ -671,6 +760,14 @@ function OptionsPanel() {
       </div>
       
       <div className="options-content">
+        {optionsPanelTab === 'airports' && (
+          <AirportsTabContent />
+        )}
+        
+        {optionsPanelTab === 'gates' && (
+          <GatesTabContent />
+        )}
+        
         {optionsPanelTab === 'sid' && (
           <div className="options-section">
             <div className="options-row">
@@ -1092,116 +1189,45 @@ function CurtainRope() {
   );
 }
 
-// ============== Airport Dropdown ==============
-function AirportDropdown() {
-  const [isOpen, setIsOpen] = useState(false);
-  const [dropdownPos, setDropdownPos] = useState<{ top: number; left: number } | null>(null);
-  const buttonRef = useRef<HTMLButtonElement>(null);
-  const dropdownRef = useRef<HTMLDivElement>(null);
-  const airports = useAirportStore(state => state.airports);
-  const toggleAirportVisibility = useAirportStore(state => state.toggleAirportVisibility);
-  const showAllAirports = useAirportStore(state => state.showAllAirports);
-  const hideAllAirports = useAirportStore(state => state.hideAllAirports);
+// ============== Theme Controls (Bottom Right) ==============
+function ThemeControls() {
+  const [isVisible, setIsVisible] = useState(true);
+  const lightMode = useFlightStore(state => state.lightMode);
+  const setLightMode = useFlightStore(state => state.setLightMode);
+  const satelliteMode = useFlightStore(state => state.satelliteMode);
+  const setSatelliteMode = useFlightStore(state => state.setSatelliteMode);
   const uiHidden = useFlightStore(state => state.uiHidden);
   
-  const mainAirports = useMemo(() => airports.filter(a => a.Main === 'Y'), [airports]);
-  const subAirports = useMemo(() => airports.filter(a => a.Main !== 'Y'), [airports]);
-  
-  // Close on click outside
-  useEffect(() => {
-    if (!isOpen) return;
-    const handleClickOutside = (e: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node) &&
-          buttonRef.current && !buttonRef.current.contains(e.target as Node)) {
-        setIsOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [isOpen]);
-  
-  // Close when curtain is hidden
-  useEffect(() => {
-    if (uiHidden) setIsOpen(false);
-  }, [uiHidden]);
-  
-  const handleToggle = () => {
-    if (!isOpen && buttonRef.current) {
-      const rect = buttonRef.current.getBoundingClientRect();
-      setDropdownPos({ top: rect.bottom + 8, left: rect.left });
-    }
-    setIsOpen(!isOpen);
-  };
-  
-  if (airports.length === 0) return null;
-  
-  const dropdownContent = isOpen && dropdownPos && createPortal(
-    <div 
-      ref={dropdownRef}
-      className="airport-dropdown"
-      style={{ 
-        position: 'fixed',
-        top: dropdownPos.top,
-        left: dropdownPos.left,
-        zIndex: 999999
-      }}
-    >
-      <div className="airport-dropdown-header">
-        <button onClick={showAllAirports}>Show All</button>
-        <button onClick={hideAllAirports}>Hide All</button>
-      </div>
-      {mainAirports.length > 0 && (
-        <>
-          <div className="airport-section-title">Main Airports</div>
-          {mainAirports.map(a => (
-            <div 
-              key={a.fid} 
-              className={`airport-dropdown-item main ${a.visible ? 'visible' : 'hidden'}`}
-              onClick={() => toggleAirportVisibility(a.fid)}
-            >
-              <span className="airport-icon">🔴</span>
-              <span className="airport-name">{a.AP || a.airport_name}</span>
-              <span className="airport-code">{a.airport_identifier}</span>
-            </div>
-          ))}
-        </>
-      )}
-      {subAirports.length > 0 && (
-        <>
-          <div className="airport-section-title">Sub Airports</div>
-          {subAirports.map(a => (
-            <div 
-              key={a.fid} 
-              className={`airport-dropdown-item ${a.visible ? 'visible' : 'hidden'}`}
-              onClick={() => toggleAirportVisibility(a.fid)}
-            >
-              <span className="airport-icon">🔵</span>
-              <span className="airport-name">{a.AP || a.airport_name}</span>
-              <span className="airport-code">{a.airport_identifier}</span>
-            </div>
-          ))}
-        </>
-      )}
-    </div>,
-    document.body
-  );
+  if (uiHidden) return null;
   
   return (
-    <>
+    <div className={`theme-controls ${isVisible ? 'visible' : 'hidden'}`}>
       <button 
-        ref={buttonRef}
-        id="btn-airport" 
-        title="Airport List"
-        className={isOpen ? 'active' : ''}
-        onClick={handleToggle}
+        className="theme-toggle-btn"
+        onClick={() => setIsVisible(!isVisible)}
+        title={isVisible ? 'Hide Theme Controls' : 'Show Theme Controls'}
       >
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style={{ marginRight: 6, verticalAlign: 'middle' }}>
-          <path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/>
-        </svg>
-        Airports
+        {isVisible ? '▶' : '◀'}
       </button>
-      {dropdownContent}
-    </>
+      <div className="theme-buttons">
+        <button 
+          id="btn-theme" 
+          title="Toggle Light/Dark Mode"
+          className={lightMode ? 'active' : ''}
+          onClick={() => setLightMode(!lightMode)}
+        >
+          {lightMode ? '🌙' : '☀️'}
+        </button>
+        <button 
+          id="btn-satellite" 
+          title="Toggle Satellite View"
+          className={satelliteMode ? 'active' : ''}
+          onClick={() => setSatelliteMode(!satelliteMode)}
+        >
+          🌍
+        </button>
+      </div>
+    </div>
   );
 }
 
@@ -2735,6 +2761,7 @@ function App() {
       <FLLegend />
       <FlightTooltip />
       <AirportInfoPanel />
+      <ThemeControls />
     </>
   );
 }

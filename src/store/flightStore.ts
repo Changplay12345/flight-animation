@@ -77,7 +77,7 @@ interface FlightStore {
   
   // Options Panel
   optionsPanelOpen: boolean;
-  optionsPanelTab: 'sid' | 'star' | 'pbn' | 'ils';
+  optionsPanelTab: 'airports' | 'gates' | 'sid' | 'star' | 'pbn' | 'ils';
   
   // SID (Standard Instrument Departure)
   sidVisible: boolean;
@@ -158,7 +158,7 @@ interface FlightStore {
   setAirwayVorVisible: (visible: boolean) => void;
   setAirwayReportingVisible: (visible: boolean) => void;
   setOptionsPanelOpen: (open: boolean) => void;
-  setOptionsPanelTab: (tab: 'sid' | 'star' | 'pbn' | 'ils') => void;
+  setOptionsPanelTab: (tab: 'airports' | 'gates' | 'sid' | 'star' | 'pbn' | 'ils') => void;
   
   setSidVisible: (visible: boolean) => void;
   setSidWaypointsVisible: (visible: boolean) => void;
@@ -249,7 +249,7 @@ export const useFlightStore = create<FlightStore>((set, get) => ({
   
   // Options Panel
   optionsPanelOpen: false,
-  optionsPanelTab: 'sid' as const,
+  optionsPanelTab: 'airports' as const,
   
   // SID
   sidVisible: false,
