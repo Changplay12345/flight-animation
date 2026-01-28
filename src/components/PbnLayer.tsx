@@ -65,7 +65,7 @@ export function PbnLayer() {
 
   // Load GeoJSON data once
   useEffect(() => {
-    fetch('/pbn/true pbn.geojson')
+    fetch('/pbn/pbnjing.geojson')
       .then(res => res.json())
       .then(data => setLegsData(data))
       .catch(err => console.error('Failed to load PBN legs:', err));

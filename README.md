@@ -138,6 +138,36 @@
  - Loading overlay visible
  - Merge output stabilized
  
- **Next steps**
- - Document required CAT062 columns expected by `src\App.tsx` parser.
- - Add merge-time assertion: merged row count == CAT062 row count.
+ ## 11) Required CSV Columns for Flight Animation
+
+**Core Required Columns (minimum):**
+- `flight_key` - Unique flight identifier
+- `timestamp_utc` - UTC timestamp (ISO format or parseable)
+- `latitude` - Latitude in decimal degrees
+- `longitude` - Longitude in decimal degrees
+
+**Optional but Recommended Columns:**
+- `flight_level` OR `measured_fl` - Flight level (altitude)
+- `actype` - Aircraft type
+- `dep` - Departure airport
+- `dest` - Destination airport
+- `acid` - Aircraft identifier (alternative to flight_key)
+
+**Enhanced Flight Data Columns (from SUR_AIR merge):**
+- `ias_dap` - Indicated Airspeed (knots)
+- `mag_heading_dap` - Magnetic Heading (degrees 0-360)
+- `rate_cd` - Rate of Climb/Descent (positive=climb, negative=descend)
+- `vert` - Vertical speed (alternative to rate_cd)
+
+**Column Aliases Supported:**
+- Time: `timestamp_utc` OR `time_of_track`
+- Altitude: `flight_level` OR `measured_fl`
+
+**Data Format Notes:**
+- All numeric columns should be parseable as numbers
+- Timestamp should be ISO format or JavaScript Date.parse() compatible
+- Empty/null values are handled gracefully
+- Missing optional columns will not break the app, just reduce functionality
+
+**Next steps**
+- Add merge-time assertion: merged row count == CAT062 row count.

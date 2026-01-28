@@ -66,6 +66,12 @@ interface FlightStore {
   
   // Tags (flight key labels)
   tagsVisible: boolean;
+  tagDisplayOptions: {
+    callsign: boolean;
+    fl: boolean;
+    ias: boolean;
+    hdg: boolean;
+  };
   
   // Airway Panel
   selectedAirway: string | null;
@@ -154,6 +160,7 @@ interface FlightStore {
   setAirwaysVisible: (visible: boolean) => void;
   setGatesVisible: (visible: boolean) => void;
   setTagsVisible: (visible: boolean) => void;
+  setTagDisplayOption: (option: 'callsign' | 'fl' | 'ias' | 'hdg', enabled: boolean) => void;
   setSelectedAirway: (route: string | null) => void;
   setAirwayOpacity: (opacity: number) => void;
   setAirwayPanelOpen: (open: boolean) => void;
@@ -243,6 +250,12 @@ export const useFlightStore = create<FlightStore>((set, get) => ({
   airwaysVisible: false,
   gatesVisible: false,
   tagsVisible: false,
+  tagDisplayOptions: {
+    callsign: true,
+    fl: false,
+    ias: false,
+    hdg: false,
+  },
   
   // Airway Panel
   selectedAirway: null,
@@ -441,6 +454,9 @@ export const useFlightStore = create<FlightStore>((set, get) => ({
   setGatesVisible: (visible) => set({ gatesVisible: visible }),
   
   setTagsVisible: (visible) => set({ tagsVisible: visible }),
+  setTagDisplayOption: (option, enabled) => set((state) => ({
+    tagDisplayOptions: { ...state.tagDisplayOptions, [option]: enabled }
+  })),
   
   setSelectedAirway: (route) => set({ selectedAirway: route, airwayPanelOpen: !!route }),
   setAirwayOpacity: (opacity) => set({ airwayOpacity: opacity }),

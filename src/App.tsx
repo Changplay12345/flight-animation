@@ -6,6 +6,7 @@ import { useFlightStore } from './store/flightStore';
 import { useAirportStore, loadAirports, loadRunways, getRunwaySurfaceText } from './store/airportStore';
 import type { Airport } from './store/airportStore';
 import { parseCSV } from './utils/csvParser';
+import { loadParquetFromUrl } from './utils/duckdbLoader';
 import { flToColor } from './utils/flightLevel';
 import { AirwayLayer } from './components/AirwayLayer';
 import { GateLayer } from './components/GateLayer';
@@ -20,66 +21,525 @@ import { StarLayer } from './components/StarLayer';
 import { PbnLayer } from './components/PbnLayer';
 import { IlsLayer } from './components/IlsLayer';
 import { useAnimation } from './hooks/useAnimation';
+import { DbViewer } from './components/DbViewer';
+import { FlightFeatureCreator } from './components/FlightFeatureCreator';
 import 'leaflet/dist/leaflet.css';
 
+
+// ============== Hash Router Hook ==============
+function useHashRoute() {
+  const [route, setRoute] = useState(window.location.hash || '#/');
+  useEffect(() => {
+    const handleHashChange = () => setRoute(window.location.hash || '#/');
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, []);
+  return route;
+}
+
+// ============== Modern SaaS Dashboard Styles ==============
+const styles = {
+  // Layout
+  container: {
+    minHeight: '100vh',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#f5f7fa',
+    padding: '24px',
+    fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+  },
+  card: {
+    backgroundColor: '#fff',
+    borderRadius: '12px',
+    padding: '32px',
+    maxWidth: '440px',
+    width: '100%',
+    boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
+    border: '1px solid #e5e7eb',
+  },
+  // Typography
+  title: {
+    fontSize: '24px',
+    fontWeight: 600,
+    color: '#111827',
+    marginBottom: '4px',
+  },
+  subtitle: {
+    fontSize: '14px',
+    color: '#6b7280',
+    marginBottom: '24px',
+  },
+  label: {
+    fontSize: '13px',
+    fontWeight: 500,
+    color: '#374151',
+    marginBottom: '6px',
+    display: 'block',
+  },
+  // Tabs
+  tabContainer: {
+    display: 'flex',
+    backgroundColor: '#f3f4f6',
+    borderRadius: '8px',
+    padding: '4px',
+    marginBottom: '20px',
+  },
+  tab: {
+    flex: 1,
+    padding: '10px 16px',
+    fontSize: '13px',
+    fontWeight: 500,
+    color: '#6b7280',
+    backgroundColor: 'transparent',
+    border: 'none',
+    borderRadius: '6px',
+    cursor: 'pointer',
+    transition: 'all 0.15s',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '6px',
+  },
+  tabActive: {
+    backgroundColor: '#fff',
+    color: '#111827',
+    boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+  },
+  // Form elements
+  select: {
+    width: '100%',
+    padding: '10px 12px',
+    backgroundColor: '#fff',
+    color: '#111827',
+    border: '1px solid #d1d5db',
+    borderRadius: '8px',
+    fontSize: '14px',
+    cursor: 'pointer',
+    outline: 'none',
+    transition: 'border-color 0.15s, box-shadow 0.15s',
+  },
+  selectFocus: {
+    borderColor: '#4f46e5',
+    boxShadow: '0 0 0 3px rgba(79, 70, 229, 0.1)',
+  },
+  filterRow: {
+    display: 'flex',
+    gap: '10px',
+    marginTop: '12px',
+  },
+  // Buttons
+  btnPrimary: {
+    width: '100%',
+    padding: '12px 20px',
+    backgroundColor: '#4f46e5',
+    color: '#fff',
+    border: 'none',
+    borderRadius: '8px',
+    fontSize: '14px',
+    fontWeight: 500,
+    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '8px',
+    transition: 'background-color 0.15s',
+    marginTop: '16px',
+  },
+  btnPrimaryHover: {
+    backgroundColor: '#4338ca',
+  },
+  btnSecondary: {
+    width: '100%',
+    padding: '12px 20px',
+    backgroundColor: '#fff',
+    color: '#374151',
+    border: '1px solid #d1d5db',
+    borderRadius: '8px',
+    fontSize: '14px',
+    fontWeight: 500,
+    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '8px',
+    transition: 'all 0.15s',
+    textDecoration: 'none',
+    marginTop: '16px',
+  },
+  btnDisabled: {
+    backgroundColor: '#e5e7eb',
+    color: '#9ca3af',
+    cursor: 'not-allowed',
+  },
+  btnRow: {
+    display: 'flex',
+    gap: '10px',
+    marginTop: '12px',
+  },
+  // Info box
+  infoBox: {
+    fontSize: '12px',
+    color: '#6b7280',
+    marginTop: '12px',
+    padding: '10px 12px',
+    backgroundColor: '#f9fafb',
+    borderRadius: '6px',
+    lineHeight: 1.5,
+  },
+  // Progress
+  progressContainer: {
+    marginBottom: '20px',
+  },
+  progressHeader: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: '8px',
+  },
+  progressLabel: {
+    fontSize: '13px',
+    fontWeight: 500,
+    color: '#374151',
+  },
+  progressPercent: {
+    fontSize: '13px',
+    fontWeight: 600,
+    color: '#4f46e5',
+  },
+  progressBar: {
+    width: '100%',
+    height: '6px',
+    backgroundColor: '#e5e7eb',
+    borderRadius: '3px',
+    overflow: 'hidden',
+  },
+  progressFill: {
+    height: '100%',
+    backgroundColor: '#4f46e5',
+    borderRadius: '3px',
+    transition: 'width 0.2s ease',
+  },
+  progressDetail: {
+    fontSize: '12px',
+    color: '#6b7280',
+    marginTop: '6px',
+  },
+  // Links
+  linkRow: {
+    display: 'flex',
+    justifyContent: 'center',
+    gap: '16px',
+    marginTop: '20px',
+    paddingTop: '16px',
+    borderTop: '1px solid #e5e7eb',
+  },
+  link: {
+    fontSize: '13px',
+    color: '#4f46e5',
+    textDecoration: 'none',
+    fontWeight: 500,
+    display: 'flex',
+    alignItems: 'center',
+    gap: '4px',
+  },
+};
+
 // ============== File Picker ==============
-function FilePicker({ onFileLoad, setLoadingText }: { onFileLoad: () => void; setLoadingText: (text: string | null) => void }) {
+function FilePicker({ onFileLoad, setLoadingText, setLoadProgress: setParentProgress }: { 
+  onFileLoad: () => void; 
+  setLoadingText: (text: string | null) => void;
+  setLoadProgress?: (progress: { stage: string; percent: number; rows: number; total: number } | null) => void;
+}) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const setFlights = useFlightStore(state => state.setFlights);
+  
+  // Tab state
+  const [activeTab, setActiveTab] = useState<'database' | 'upload'>('database');
+  
+  // Dataset picker state
+  const [datasets, setDatasets] = useState<string[]>([]);
+  const [selectedDataset, setSelectedDataset] = useState<string>('');
+  const [depCodes, setDepCodes] = useState<string[]>([]);
+  const [destCodes, setDestCodes] = useState<string[]>([]);
+  const [selectedDep, setSelectedDep] = useState<string>('');
+  const [selectedDest, setSelectedDest] = useState<string>('');
+  const [loadingDatasets, setLoadingDatasets] = useState(false);
+  const [loadProgress, setLocalProgress] = useState<{ stage: string; percent: number; rows: number; total: number } | null>(null);
+  
+  // Update both local and parent progress
+  const setLoadProgress = (p: { stage: string; percent: number; rows: number; total: number } | null) => {
+    setLocalProgress(p);
+    setParentProgress?.(p);
+  };
+
+  // Load available datasets on mount
+  useEffect(() => {
+    console.log('Fetching datasets...');
+    fetch('http://localhost:8000/flight-features/datasets')
+      .then(res => {
+        console.log('Datasets response status:', res.status);
+        return res.json();
+      })
+      .then(data => {
+        console.log('Datasets API response:', data);
+        if (Array.isArray(data)) {
+          const names = data.map((d: { table_name: string }) => d.table_name);
+          console.log('Dataset names:', names);
+          setDatasets(names);
+          if (names.length > 0) {
+            setSelectedDataset(names[0]);
+          }
+        }
+      })
+      .catch(err => console.error('Failed to load datasets:', err));
+  }, []);
+
+  // Load airport codes when dataset is selected
+  useEffect(() => {
+    if (!selectedDataset) {
+      setDepCodes([]);
+      setDestCodes([]);
+      return;
+    }
+    fetch(`http://localhost:8000/flight-features/airports?dataset=${selectedDataset}`)
+      .then(res => res.json())
+      .then(data => {
+        setDepCodes(data.dep_codes || []);
+        setDestCodes(data.dest_codes || []);
+      })
+      .catch(() => {});
+  }, [selectedDataset]);
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     
+    setLoadProgress({ stage: 'Reading file', percent: 5, rows: 0, total: 0 });
     setLoadingText(`Loading ${file.name}...`);
     
     try {
       const result = await parseCSV(file, (loaded) => {
+        const percent = Math.min(70, 10 + (loaded / 50000) * 60);
+        setLoadProgress({ stage: 'Parsing CSV', percent, rows: loaded, total: 0 });
         setLoadingText(`Parsing... ${(loaded / 1000).toFixed(0)}k rows`);
       });
       
+      setLoadProgress({ stage: 'Processing flights', percent: 85, rows: Object.keys(result.flights).length, total: 0 });
       setLoadingText(`Processing ${Object.keys(result.flights).length} flights...`);
-      
-      // Give UI time to update before heavy processing
       await new Promise(r => setTimeout(r, 50));
       
       setFlights(result.flights, result.flightMeta, result.stats);
       
+      setLoadProgress({ stage: 'Initializing', percent: 95, rows: 0, total: 0 });
       setLoadingText('Initializing map...');
       await new Promise(r => setTimeout(r, 50));
       
+      setLoadProgress(null);
       setLoadingText(null);
       onFileLoad();
     } catch (error) {
       console.error('Error parsing CSV:', error);
+      setLoadProgress({ stage: 'Error', percent: 0, rows: 0, total: 0 });
       setLoadingText('Error loading file');
-      setTimeout(() => setLoadingText(null), 2000);
+      setTimeout(() => { setLoadProgress(null); setLoadingText(null); }, 2000);
       return;
     }
   };
 
+  const handleLoadDataset = async () => {
+    if (!selectedDataset) return;
+    
+    setLoadingDatasets(true);
+    setLoadProgress({ stage: 'Checking parquet', percent: 5, rows: 0, total: 0 });
+    setLoadingText(`Loading ${selectedDataset}...`);
+    
+    try {
+      const params = new URLSearchParams({ dataset: selectedDataset });
+      if (selectedDep) params.append('dep', selectedDep);
+      if (selectedDest) params.append('dest', selectedDest);
+      
+      // Step 1: Check if parquet exists
+      const checkRes = await fetch(`http://localhost:8000/flight-features/parquet/check?${params}`);
+      const checkData = await checkRes.json();
+      
+      // Step 2: Generate parquet if not exists
+      if (!checkData.exists) {
+        setLoadProgress({ stage: 'Generating parquet', percent: 10, rows: 0, total: 0 });
+        setLoadingText('Generating parquet file (one-time)...');
+        
+        const genRes = await fetch(`http://localhost:8000/flight-features/parquet/generate?${params}`, {
+          method: 'POST'
+        });
+        const genData = await genRes.json();
+        
+        if (!genData.success) {
+          throw new Error(genData.error || 'Failed to generate parquet');
+        }
+        
+        setLoadProgress({ stage: 'Parquet ready', percent: 25, rows: genData.rows || 0, total: 0 });
+        setLoadingText(`Parquet generated: ${genData.size_mb} MB`);
+      }
+      
+      // Step 3: Load parquet using DuckDB WASM
+      const parquetUrl = `http://localhost:8000/flight-features/parquet/download?${params}`;
+      
+      const result = await loadParquetFromUrl(parquetUrl, (stage, percent, rows) => {
+        setLoadProgress({ stage, percent, rows, total: 0 });
+        setLoadingText(`${stage}... ${rows > 0 ? `${(rows / 1000).toFixed(0)}k rows` : ''}`);
+      });
+      
+      setFlights(result.flights, result.flightMeta, result.stats);
+      
+      setLoadProgress(null);
+      setLoadingText(null);
+      onFileLoad();
+    } catch (error) {
+      console.error('Error loading dataset:', error);
+      setLoadProgress({ stage: 'Error', percent: 0, rows: 0, total: 0 });
+      setLoadingText(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      setTimeout(() => { setLoadProgress(null); setLoadingText(null); }, 3000);
+    } finally {
+      setLoadingDatasets(false);
+    }
+  };
+
   return (
-    <div id="file-picker">
-        <h1>✈️ Flight Animation Viewer</h1>
-        <p>Select a CSV file with flight trajectory data</p>
-        <label htmlFor="csv-input">Choose CSV File</label>
-        <input 
-          ref={fileInputRef}
-          type="file" 
-          id="csv-input" 
-          accept=".csv"
-          onChange={handleFileChange}
-        />
-        <div className="schema-hint">Required columns: flight_key, timestamp_utc, latitude, longitude</div>
-        <button 
-          className="testing-btn"
-          onClick={() => {
-            setLoadingText(null);
-            onFileLoad();
-          }}
-        >
-          🧪 Testing
-        </button>
+    <div style={styles.container} className="page-transition">
+      <div style={styles.card}>
+        <h1 style={styles.title}>Flight Animation Viewer</h1>
+        <p style={styles.subtitle}>Load flight trajectory data for visualization</p>
+        
+        {/* Progress */}
+        {loadProgress && (
+          <div style={styles.progressContainer}>
+            <div style={styles.progressHeader}>
+              <span style={styles.progressLabel}>{loadProgress.stage}</span>
+              <span style={styles.progressPercent}>{loadProgress.percent}%</span>
+            </div>
+            <div style={styles.progressBar}>
+              <div style={{ ...styles.progressFill, width: `${loadProgress.percent}%` }} />
+            </div>
+            {loadProgress.total && loadProgress.total > 0 && (
+              <div style={styles.progressDetail}>
+                {loadProgress.rows?.toLocaleString() || 0} / {loadProgress.total.toLocaleString()} rows
+              </div>
+            )}
+          </div>
+        )}
+        
+        {/* Tabs */}
+        <div style={styles.tabContainer}>
+          <button 
+            style={{ ...styles.tab, ...(activeTab === 'database' ? styles.tabActive : {}) }}
+            onClick={() => setActiveTab('database')}
+          >
+            Database
+          </button>
+          <button 
+            style={{ ...styles.tab, ...(activeTab === 'upload' ? styles.tabActive : {}) }}
+            onClick={() => setActiveTab('upload')}
+          >
+            Upload CSV
+          </button>
+        </div>
+        
+        {/* Database Tab */}
+        {activeTab === 'database' && (
+          <>
+            <label style={styles.label}>Dataset</label>
+            <select 
+              value={selectedDataset} 
+              onChange={(e) => setSelectedDataset(e.target.value)}
+              style={styles.select}
+              disabled={loadingDatasets || datasets.length === 0}
+            >
+              <option value="">{datasets.length === 0 ? 'No datasets available' : 'Select a dataset'}</option>
+              {datasets.map(d => <option key={d} value={d}>{d}</option>)}
+            </select>
+            
+            {selectedDataset && (
+              <>
+                <label style={{ ...styles.label, marginTop: '12px' }}>Filter by Airport</label>
+                <div style={styles.filterRow}>
+                  <select 
+                    value={selectedDep} 
+                    onChange={(e) => setSelectedDep(e.target.value)}
+                    style={{ ...styles.select, flex: 1 }}
+                    disabled={loadingDatasets}
+                  >
+                    <option value="">All Departures</option>
+                    {depCodes.map(c => <option key={c} value={c}>{c}</option>)}
+                  </select>
+                  <select 
+                    value={selectedDest} 
+                    onChange={(e) => setSelectedDest(e.target.value)}
+                    style={{ ...styles.select, flex: 1 }}
+                    disabled={loadingDatasets}
+                  >
+                    <option value="">All Destinations</option>
+                    {destCodes.map(c => <option key={c} value={c}>{c}</option>)}
+                  </select>
+                </div>
+              </>
+            )}
+            
+            <button 
+              onClick={handleLoadDataset}
+              disabled={!selectedDataset || loadingDatasets}
+              style={{ 
+                ...styles.btnPrimary, 
+                ...((!selectedDataset || loadingDatasets) ? styles.btnDisabled : {})
+              }}
+            >
+              {loadingDatasets ? 'Loading...' : 'Load Dataset'}
+            </button>
+            
+            {datasets.length === 0 && (
+              <div style={styles.infoBox}>
+                No datasets found. Create one using the Dataset Creator.
+              </div>
+            )}
+          </>
+        )}
+        
+        {/* Upload Tab */}
+        {activeTab === 'upload' && (
+          <>
+            <input 
+              ref={fileInputRef}
+              type="file" 
+              id="csv-input" 
+              accept=".csv"
+              onChange={handleFileChange}
+              style={{ display: 'none' }}
+            />
+            <button 
+              onClick={() => fileInputRef.current?.click()}
+              style={styles.btnSecondary}
+            >
+              Select CSV File
+            </button>
+            <div style={styles.infoBox}>
+              <strong>Required:</strong> flight_key, timestamp_utc, latitude, longitude<br/>
+              <strong>Optional:</strong> flight_level, actype, dep, dest, ias_dap, mag_heading_dap
+            </div>
+          </>
+        )}
+        
+        {/* Footer Links */}
+        <div style={styles.linkRow}>
+          <a href="#/db-viewer" style={styles.link}>DB Viewer</a>
+          <a href="#/flight-features" style={styles.link}>Create Dataset</a>
+          <a 
+            href="#"
+            onClick={(e) => { e.preventDefault(); setLoadingText(null); onFileLoad(); }}
+            style={styles.link}
+          >
+            Testing Mode
+          </a>
+        </div>
+      </div>
     </div>
   );
 }
@@ -101,6 +561,8 @@ function TrailsDropdown() {
   const setTrailDecayMinutes = useFlightStore(state => state.setTrailDecayMinutes);
   const tagsVisible = useFlightStore(state => state.tagsVisible);
   const setTagsVisible = useFlightStore(state => state.setTagsVisible);
+  const tagDisplayOptions = useFlightStore(state => state.tagDisplayOptions);
+  const setTagDisplayOption = useFlightStore(state => state.setTagDisplayOption);
   const uiHidden = useFlightStore(state => state.uiHidden);
   
   useEffect(() => {
@@ -147,6 +609,26 @@ function TrailsDropdown() {
         <span>Flight Tags</span>
         <input type="checkbox" checked={tagsVisible} onChange={(e) => setTagsVisible(e.target.checked)} />
       </label>
+      {tagsVisible && (
+        <div className="tag-options-group">
+          <label className="trails-option-row tag-option">
+            <span>Callsign</span>
+            <input type="checkbox" checked={tagDisplayOptions.callsign} onChange={(e) => setTagDisplayOption('callsign', e.target.checked)} />
+          </label>
+          <label className="trails-option-row tag-option">
+            <span>FL</span>
+            <input type="checkbox" checked={tagDisplayOptions.fl} onChange={(e) => setTagDisplayOption('fl', e.target.checked)} />
+          </label>
+          <label className="trails-option-row tag-option">
+            <span>IAS</span>
+            <input type="checkbox" checked={tagDisplayOptions.ias} onChange={(e) => setTagDisplayOption('ias', e.target.checked)} />
+          </label>
+          <label className="trails-option-row tag-option">
+            <span>HDG</span>
+            <input type="checkbox" checked={tagDisplayOptions.hdg} onChange={(e) => setTagDisplayOption('hdg', e.target.checked)} />
+          </label>
+        </div>
+      )}
       {!showFullTrails && (
         <div className="trails-option-row column">
           <span>Trail Decay</span>
@@ -2828,18 +3310,96 @@ function DynamicTileLayer({ lightMode, satelliteMode }: { lightMode: boolean; sa
 }
 
 // ============== Loading Overlay ==============
-function LoadingOverlay({ text }: { text: string | null }) {
-  if (!text) return null;
+function LoadingOverlay({ text, progress }: { text: string | null; progress?: { stage: string; percent: number; rows: number; total: number } | null }) {
+  if (!text && !progress) return null;
   return (
-    <div id="loading">
-      <div className="loading-spinner"></div>
-      <div>{text}</div>
+    <div style={{
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      backgroundColor: 'rgba(245, 247, 250, 0.95)',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      zIndex: 9999,
+      fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+    }}>
+      <div style={{
+        backgroundColor: '#fff',
+        borderRadius: '16px',
+        padding: '32px 48px',
+        boxShadow: '0 4px 24px rgba(0,0,0,0.1)',
+        border: '1px solid #e5e7eb',
+        minWidth: '320px',
+        textAlign: 'center',
+      }}>
+        {/* Spinner */}
+        <div style={{
+          width: '48px',
+          height: '48px',
+          border: '4px solid #e5e7eb',
+          borderTop: '4px solid #4f46e5',
+          borderRadius: '50%',
+          animation: 'spin 1s linear infinite',
+          margin: '0 auto 20px',
+        }} />
+        
+        {/* Stage text */}
+        <div style={{ fontSize: '16px', fontWeight: 600, color: '#111827', marginBottom: '8px' }}>
+          {progress?.stage || text || 'Loading...'}
+        </div>
+        
+        {/* Progress bar */}
+        {progress && (
+          <>
+            <div style={{
+              width: '100%',
+              height: '8px',
+              backgroundColor: '#e5e7eb',
+              borderRadius: '4px',
+              overflow: 'hidden',
+              marginTop: '16px',
+            }}>
+              <div style={{
+                height: '100%',
+                width: `${progress.percent}%`,
+                backgroundColor: '#4f46e5',
+                borderRadius: '4px',
+                transition: 'width 0.3s ease',
+              }} />
+            </div>
+            <div style={{ fontSize: '13px', color: '#6b7280', marginTop: '12px' }}>
+              {progress.percent}%{progress.total > 0 ? ` • ${progress.rows.toLocaleString()} / ${progress.total.toLocaleString()} rows` : ''}
+            </div>
+          </>
+        )}
+      </div>
     </div>
   );
 }
 
 // ============== Main App ==============
 function App() {
+  const route = useHashRoute();
+  
+  // Route to DB Viewer
+  if (route === '#/db-viewer') {
+    return <DbViewer />;
+  }
+  
+  // Route to Flight Feature Creator
+  if (route === '#/flight-features') {
+    return <FlightFeatureCreator />;
+  }
+  
+  return <FlightApp />;
+}
+
+// ============== Flight App (Original App Logic) ==============
+function FlightApp() {
   const [showApp, setShowApp] = useState(false);
   const [loadingText, setLoadingText] = useState<string | null>(null);
   const flightCount = Object.keys(useFlightStore(state => state.flights)).length;
@@ -2868,17 +3428,50 @@ function App() {
     if (flightCount > 0) setShowApp(true);
   }, [flightCount]);
 
+  const [loadProgress, setLoadProgress] = useState<{ stage: string; percent: number; rows: number; total: number } | null>(null);
+
   if (!showApp) {
     return (
       <>
-        <LoadingOverlay text={loadingText} />
-        <FilePicker onFileLoad={() => setShowApp(true)} setLoadingText={setLoadingText} />
+        <LoadingOverlay text={loadingText} progress={loadProgress} />
+        <FilePicker onFileLoad={() => setShowApp(true)} setLoadingText={setLoadingText} setLoadProgress={setLoadProgress} />
       </>
     );
   }
 
+  const handleBack = () => {
+    setShowApp(false);
+    window.location.hash = '#/';
+  };
+
   return (
     <>
+      {/* Back Button - slim triangle, respects light/dark mode */}
+      <button
+        onClick={handleBack}
+        title="Change data source"
+        style={{
+          position: 'fixed',
+          bottom: '20px',
+          left: '20px',
+          zIndex: 1001,
+          width: '32px',
+          height: '32px',
+          padding: 0,
+          backgroundColor: lightMode ? '#fff' : '#16213e',
+          color: lightMode ? '#374151' : '#eee',
+          border: lightMode ? '1px solid #d1d5db' : '1px solid #2d2d44',
+          borderRadius: '6px',
+          fontSize: '16px',
+          cursor: 'pointer',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          transition: 'all 0.2s',
+        }}
+      >
+        ◀
+      </button>
       <MainUIContainer />
       <FlightMap lightMode={lightMode} satelliteMode={satelliteMode} />
       <FlightPanel />

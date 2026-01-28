@@ -7,8 +7,10 @@ interface FlightPoint {
   t: number;
   lat: number;
   lon: number;
-  fl: number;
-  hdg?: number;
+  fl: number | null;
+  ias: number | null;
+  magHeading: number | null;
+  acid?: string | null;
 }
 
 export function FlightTagsLayer() {
@@ -16,6 +18,7 @@ export function FlightTagsLayer() {
   const tagsLayerRef = useRef<L.LayerGroup | null>(null);
   
   const tagsVisible = useFlightStore(state => state.tagsVisible);
+  const tagDisplayOptions = useFlightStore(state => state.tagDisplayOptions);
   const flights = useFlightStore(state => state.flights);
   const flightMeta = useFlightStore(state => state.flightMeta);
   const timeline = useFlightStore(state => state.timeline);
@@ -38,7 +41,7 @@ export function FlightTagsLayer() {
   // Calculate visible flights at current time
   const visibleFlights = useMemo(() => {
     const currentTime = timeline.current;
-    const result: { key: string; lat: number; lon: number; color: string }[] = [];
+    const result: { key: string; lat: number; lon: number; color: string; fl: number | null; ias: number | null; hdg: number | null; acid: string | null }[] = [];
     
     Object.entries(flights).forEach(([key, points]) => {
       const meta = flightMeta[key];
@@ -70,17 +73,37 @@ export function FlightTagsLayer() {
         }
       }
       
-      // Interpolate position
+      // Get current point data
       const idx = left;
+      const currentPoint = idx === 0 ? flightPoints[0] : flightPoints[idx];
+      
       if (idx === 0) {
-        result.push({ key, lat: flightPoints[0].lat, lon: flightPoints[0].lon, color: meta.color });
+        result.push({ 
+          key, 
+          lat: flightPoints[0].lat, 
+          lon: flightPoints[0].lon, 
+          color: meta.color,
+          fl: currentPoint.fl,
+          ias: currentPoint.ias,
+          hdg: currentPoint.magHeading,
+          acid: currentPoint.acid || null
+        });
       } else {
         const p1 = flightPoints[idx - 1];
         const p2 = flightPoints[idx];
         const ratio = (currentTime - p1.t) / (p2.t - p1.t);
         const lat = p1.lat + (p2.lat - p1.lat) * ratio;
         const lon = p1.lon + (p2.lon - p1.lon) * ratio;
-        result.push({ key, lat, lon, color: meta.color });
+        result.push({ 
+          key, 
+          lat, 
+          lon, 
+          color: meta.color,
+          fl: currentPoint.fl,
+          ias: currentPoint.ias,
+          hdg: currentPoint.magHeading,
+          acid: currentPoint.acid || null
+        });
       }
     });
     
@@ -103,14 +126,26 @@ export function FlightTagsLayer() {
     const zoom = map.getZoom();
     const { fontSize, padding } = getTagSize(zoom);
     
-    visibleFlights.forEach(({ key, lat, lon }) => {
+    visibleFlights.forEach(({ key, lat, lon, fl, ias, hdg, acid }) => {
       const bgColor = lightMode ? 'rgba(255, 255, 255, 0.95)' : 'rgba(20, 20, 30, 0.9)';
       const textColor = lightMode ? '#222' : '#fff';
       const borderColor = lightMode ? 'rgba(0, 0, 0, 0.3)' : 'rgba(255, 255, 255, 0.4)';
       
-      // Extract just the flight identifier without any timestamp suffix
-      // Flight keys may be like "THA123_20240101" - we want just "THA123"
-      const displayKey = key.includes('_') ? key.split('_')[0] : key;
+      // Build display text from enabled options
+      const parts: string[] = [];
+      if (tagDisplayOptions.callsign) {
+        parts.push(acid || (key.includes('_') ? key.split('_')[0] : key));
+      }
+      if (tagDisplayOptions.fl) {
+        parts.push(fl != null ? `FL${Math.round(fl)}` : '--');
+      }
+      if (tagDisplayOptions.ias) {
+        parts.push(ias != null ? `${Math.round(ias)}kt` : '--');
+      }
+      if (tagDisplayOptions.hdg) {
+        parts.push(hdg != null ? `${Math.round(hdg)}°` : '--');
+      }
+      const displayText = parts.length > 0 ? parts.join(' ') : '--';
       
       const icon = L.divIcon({
         className: 'flight-tag',
@@ -128,7 +163,7 @@ export function FlightTagsLayer() {
           box-shadow: 0 1px 4px rgba(0,0,0,0.3);
           pointer-events: none;
           line-height: 1.2;
-        ">${displayKey}</div>`,
+        ">${displayText}</div>`,
         iconSize: undefined as any,
         iconAnchor: [-10, 10],
       });
@@ -144,7 +179,7 @@ export function FlightTagsLayer() {
         map.removeLayer(tagsLayerRef.current);
       }
     };
-  }, [tagsVisible, visibleFlights, lightMode, map]);
+  }, [tagsVisible, visibleFlights, lightMode, map, tagDisplayOptions]);
 
   // Update on zoom change
   useEffect(() => {
@@ -158,13 +193,26 @@ export function FlightTagsLayer() {
         const zoom = map.getZoom();
         const { fontSize, padding } = getTagSize(zoom);
         
-        visibleFlights.forEach(({ key, lat, lon }) => {
+        visibleFlights.forEach(({ key, lat, lon, fl, ias, hdg, acid }) => {
           const bgColor = lightMode ? 'rgba(255, 255, 255, 0.95)' : 'rgba(20, 20, 30, 0.9)';
           const textColor = lightMode ? '#222' : '#fff';
           const borderColor = lightMode ? 'rgba(0, 0, 0, 0.3)' : 'rgba(255, 255, 255, 0.4)';
           
-          // Extract just the flight identifier without any timestamp suffix
-          const displayKey = key.includes('_') ? key.split('_')[0] : key;
+          // Build display text from enabled options
+          const parts: string[] = [];
+          if (tagDisplayOptions.callsign) {
+            parts.push(acid || (key.includes('_') ? key.split('_')[0] : key));
+          }
+          if (tagDisplayOptions.fl) {
+            parts.push(fl != null ? `FL${Math.round(fl)}` : '--');
+          }
+          if (tagDisplayOptions.ias) {
+            parts.push(ias != null ? `${Math.round(ias)}kt` : '--');
+          }
+          if (tagDisplayOptions.hdg) {
+            parts.push(hdg != null ? `${Math.round(hdg)}°` : '--');
+          }
+          const displayText = parts.length > 0 ? parts.join(' ') : '--';
           
           const icon = L.divIcon({
             className: 'flight-tag',
@@ -182,7 +230,7 @@ export function FlightTagsLayer() {
               box-shadow: 0 1px 4px rgba(0,0,0,0.3);
               pointer-events: none;
               line-height: 1.2;
-            ">${displayKey}</div>`,
+            ">${displayText}</div>`,
             iconSize: undefined as any,
             iconAnchor: [-10, 10],
           });
@@ -197,7 +245,7 @@ export function FlightTagsLayer() {
     return () => {
       map.off('zoomend', handleZoom);
     };
-  }, [tagsVisible, visibleFlights, lightMode, map]);
+  }, [tagsVisible, visibleFlights, lightMode, map, tagDisplayOptions]);
 
   return null;
 }
