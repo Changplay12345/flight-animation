@@ -22,3 +22,10 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Data files (too large for git)
+*.csv
+*.parquet
+tools/db_viewer_api/data/parquet/
+tools/db_viewer_api/csv_cache/
+test_download.csv
