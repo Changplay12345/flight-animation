@@ -23,7 +23,7 @@ import { IlsLayer } from './components/IlsLayer';
 import { useAnimation } from './hooks/useAnimation';
 import { DbViewer } from './components/DbViewer';
 import { FlightFeatureCreator } from './components/FlightFeatureCreator';
-import { API_BASE } from './config/api';
+import { API_BASE, apiFetch } from './config/api';
 import 'leaflet/dist/leaflet.css';
 
 
@@ -277,7 +277,7 @@ function FilePicker({ onFileLoad, setLoadingText, setLoadProgress: setParentProg
   // Load available datasets on mount
   useEffect(() => {
     console.log('Fetching datasets...');
-    fetch(`${API_BASE}/flight-features/datasets`)
+    apiFetch(`${API_BASE}/flight-features/datasets`)
       .then(res => {
         console.log('Datasets response status:', res.status);
         return res.json();
