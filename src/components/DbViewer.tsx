@@ -1,6 +1,6 @@
 // file: components/DbViewer.tsx
 import { useState, useEffect, useCallback } from 'react';
-import { API_BASE } from '../config/api';
+import { API_BASE, apiFetch } from '../config/api';
 const PAGE_SIZE = 50;
 
 // Hide scrollbar CSS for webkit browsers
@@ -50,7 +50,7 @@ export function DbViewer() {
   // Fetch schemas on mount
   useEffect(() => {
     console.log('Fetching schemas from:', `${API_BASE}/schemas`);
-    fetch(`${API_BASE}/schemas`)
+    apiFetch(`${API_BASE}/schemas`)
       .then(res => res.json())
       .then(data => {
         console.log('Schemas response:', data);
@@ -71,7 +71,7 @@ export function DbViewer() {
       newExpanded.add(schemaName);
       if (!tables[schemaName]) {
         try {
-          const res = await fetch(`${API_BASE}/tables?schema=${schemaName}`);
+          const res = await apiFetch(`${API_BASE}/tables?schema=${schemaName}`);
           const data = await res.json();
           setTables(prev => ({ ...prev, [schemaName]: data }));
         } catch (err) {
@@ -87,7 +87,7 @@ export function DbViewer() {
     setLoading(true);
     try {
       const offset = pageNum * PAGE_SIZE;
-      const res = await fetch(`${API_BASE}/rows?schema=${schema}&table=${table}&limit=${PAGE_SIZE}&offset=${offset}`);
+      const res = await apiFetch(`${API_BASE}/rows?schema=${schema}&table=${table}&limit=${PAGE_SIZE}&offset=${offset}`);
       const data = await res.json();
       setRows(data);
     } catch (err) {
@@ -105,9 +105,9 @@ export function DbViewer() {
     setError(null);
     try {
       const [colRes, countRes, rowRes] = await Promise.all([
-        fetch(`${API_BASE}/columns?schema=${schema}&table=${table}`),
-        fetch(`${API_BASE}/count?schema=${schema}&table=${table}`),
-        fetch(`${API_BASE}/rows?schema=${schema}&table=${table}&limit=${PAGE_SIZE}&offset=0`),
+        apiFetch(`${API_BASE}/columns?schema=${schema}&table=${table}`),
+        apiFetch(`${API_BASE}/count?schema=${schema}&table=${table}`),
+        apiFetch(`${API_BASE}/rows?schema=${schema}&table=${table}&limit=${PAGE_SIZE}&offset=0`),
       ]);
       const colData = await colRes.json();
       const countData = await countRes.json();
@@ -148,12 +148,12 @@ export function DbViewer() {
             onClick={async () => {
               if (!selectedTable || !confirm(`Delete dataset "${selectedTable.table}"?`)) return;
               try {
-                await fetch(`${API_BASE}/flight-features/delete?dataset=${selectedTable.table}`, { method: 'DELETE' });
+                await apiFetch(`${API_BASE}/flight-features/delete?dataset=${selectedTable.table}`, { method: 'DELETE' });
                 setSelectedTable(null);
                 setColumns([]);
                 setRows(null);
                 // Refresh tables
-                const res = await fetch(`${API_BASE}/tables?schema=flight_features`);
+                const res = await apiFetch(`${API_BASE}/tables?schema=flight_features`);
                 const data = await res.json();
                 setTables(prev => ({ ...prev, flight_features: data }));
               } catch (err) {

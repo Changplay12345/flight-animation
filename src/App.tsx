@@ -303,7 +303,7 @@ function FilePicker({ onFileLoad, setLoadingText, setLoadProgress: setParentProg
       setDestCodes([]);
       return;
     }
-    fetch(`${API_BASE}/flight-features/airports-from-dataset?dataset=${selectedDataset}`)
+    apiFetch(`${API_BASE}/flight-features/airports-from-dataset?dataset=${selectedDataset}`)
       .then(res => res.json())
       .then(data => {
         setDepCodes(data.dep_codes || []);
@@ -361,7 +361,7 @@ function FilePicker({ onFileLoad, setLoadingText, setLoadProgress: setParentProg
       if (selectedDest) params.append('dest', selectedDest);
       
       // Step 1: Check if parquet exists
-      const checkRes = await fetch(`${API_BASE}/flight-features/parquet/check?${params}`);
+      const checkRes = await apiFetch(`${API_BASE}/flight-features/parquet/check?${params}`);
       const checkData = await checkRes.json();
       
       // Step 2: Generate parquet if not exists
@@ -369,7 +369,7 @@ function FilePicker({ onFileLoad, setLoadingText, setLoadProgress: setParentProg
         setLoadProgress({ stage: 'Generating parquet', percent: 10, rows: 0, total: 0 });
         setLoadingText('Generating parquet file (one-time)...');
         
-        const genRes = await fetch(`${API_BASE}/flight-features/parquet/generate?${params}`, {
+        const genRes = await apiFetch(`${API_BASE}/flight-features/parquet/generate?${params}`, {
           method: 'POST'
         });
         const genData = await genRes.json();
@@ -382,8 +382,8 @@ function FilePicker({ onFileLoad, setLoadingText, setLoadProgress: setParentProg
         setLoadingText(`Parquet generated: ${genData.size_mb} MB`);
       }
       
-      // Step 3: Load parquet using DuckDB WASM
-      const parquetUrl = `${API_BASE}/flight-features/parquet/download?${params}`;
+      // Step 3: Load parquet using DuckDB WASM - use regular fetch for file download
+      const parquetUrl = `${API_BASE}/flight-features/parquet/download?${params}?ngrok-skip-browser-warning=true`;
       
       const result = await loadParquetFromUrl(parquetUrl, (stage, percent, rows) => {
         setLoadProgress({ stage, percent, rows, total: 0 });

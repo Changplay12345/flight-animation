@@ -1,6 +1,6 @@
 // file: components/FlightFeatureCreator.tsx
 import { useState, useEffect, useCallback } from 'react';
-import { API_BASE } from '../config/api';
+import { API_BASE, apiFetch } from '../config/api';
 
 interface DateOption {
   date: string;
@@ -49,8 +49,8 @@ export function FlightFeatureCreator() {
   useEffect(() => {
     setLoading(true);
     Promise.all([
-      fetch(`${API_BASE}/flight-features/dates`).then(r => r.json()),
-      fetch(`${API_BASE}/flight-features/datasets`).then(r => r.json()),
+      apiFetch(`${API_BASE}/flight-features/dates`).then(r => r.json()),
+      apiFetch(`${API_BASE}/flight-features/datasets`).then(r => r.json()),
     ])
       .then(([datesData, datasetsData]) => {
         setDates(datesData);
@@ -70,7 +70,7 @@ export function FlightFeatureCreator() {
     setAirports([]);
     setAirportFilter('');
     setPreviewCount(null);
-    fetch(`${API_BASE}/flight-features/airports?date=${selectedDate}`)
+    apiFetch(`${API_BASE}/flight-features/airports?date=${selectedDate}`)
       .then(r => r.json())
       .then(data => setAirports(data))
       .catch(() => setAirports([]))
@@ -83,7 +83,7 @@ export function FlightFeatureCreator() {
     setLoadingPreview(true);
     const params = new URLSearchParams({ date: selectedDate });
     if (airportFilter) params.set('airport', airportFilter);
-    fetch(`${API_BASE}/flight-features/preview-count?${params}`)
+    apiFetch(`${API_BASE}/flight-features/preview-count?${params}`)
       .then(r => r.json())
       .then(data => setPreviewCount(data.count ?? null))
       .catch(() => setPreviewCount(null))
@@ -93,7 +93,7 @@ export function FlightFeatureCreator() {
   // Refresh datasets list
   const refreshDatasets = useCallback(async () => {
     try {
-      const res = await fetch(`${API_BASE}/flight-features/datasets`);
+      const res = await apiFetch(`${API_BASE}/flight-features/datasets`);
       const data = await res.json();
       setDatasets(data);
     } catch (err) {
@@ -121,7 +121,7 @@ export function FlightFeatureCreator() {
         params.set('airport', airportFilter.trim().toUpperCase());
       }
 
-      const res = await fetch(`${API_BASE}/flight-features/create?${params}`, {
+      const res = await apiFetch(`${API_BASE}/flight-features/create?${params}`, {
         method: 'POST',
       });
       const result: CreateResult = await res.json();
@@ -146,7 +146,7 @@ export function FlightFeatureCreator() {
     setPreview(null);
 
     try {
-      const res = await fetch(`${API_BASE}/flight-features/preview?dataset=${datasetName}&limit=20`);
+      const res = await apiFetch(`${API_BASE}/flight-features/preview?dataset=${datasetName}&limit=20`);
       const data = await res.json();
       setPreview(data);
     } catch (err) {
@@ -159,7 +159,7 @@ export function FlightFeatureCreator() {
     if (!confirm(`Delete dataset "${datasetName}"?`)) return;
 
     try {
-      await fetch(`${API_BASE}/flight-features/delete?dataset=${datasetName}`, {
+      await apiFetch(`${API_BASE}/flight-features/delete?dataset=${datasetName}`, {
         method: 'DELETE',
       });
       await refreshDatasets();
