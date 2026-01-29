@@ -23,6 +23,7 @@ import { IlsLayer } from './components/IlsLayer';
 import { useAnimation } from './hooks/useAnimation';
 import { DbViewer } from './components/DbViewer';
 import { FlightFeatureCreator } from './components/FlightFeatureCreator';
+import { API_BASE } from './config/api';
 import 'leaflet/dist/leaflet.css';
 
 
@@ -276,7 +277,7 @@ function FilePicker({ onFileLoad, setLoadingText, setLoadProgress: setParentProg
   // Load available datasets on mount
   useEffect(() => {
     console.log('Fetching datasets...');
-    fetch('http://localhost:8000/flight-features/datasets')
+    fetch(`${API_BASE}/flight-features/datasets`)
       .then(res => {
         console.log('Datasets response status:', res.status);
         return res.json();
@@ -302,7 +303,7 @@ function FilePicker({ onFileLoad, setLoadingText, setLoadProgress: setParentProg
       setDestCodes([]);
       return;
     }
-    fetch(`http://localhost:8000/flight-features/airports?dataset=${selectedDataset}`)
+    fetch(`${API_BASE}/flight-features/airports-from-dataset?dataset=${selectedDataset}`)
       .then(res => res.json())
       .then(data => {
         setDepCodes(data.dep_codes || []);
@@ -360,7 +361,7 @@ function FilePicker({ onFileLoad, setLoadingText, setLoadProgress: setParentProg
       if (selectedDest) params.append('dest', selectedDest);
       
       // Step 1: Check if parquet exists
-      const checkRes = await fetch(`http://localhost:8000/flight-features/parquet/check?${params}`);
+      const checkRes = await fetch(`${API_BASE}/flight-features/parquet/check?${params}`);
       const checkData = await checkRes.json();
       
       // Step 2: Generate parquet if not exists
@@ -368,7 +369,7 @@ function FilePicker({ onFileLoad, setLoadingText, setLoadProgress: setParentProg
         setLoadProgress({ stage: 'Generating parquet', percent: 10, rows: 0, total: 0 });
         setLoadingText('Generating parquet file (one-time)...');
         
-        const genRes = await fetch(`http://localhost:8000/flight-features/parquet/generate?${params}`, {
+        const genRes = await fetch(`${API_BASE}/flight-features/parquet/generate?${params}`, {
           method: 'POST'
         });
         const genData = await genRes.json();
@@ -382,7 +383,7 @@ function FilePicker({ onFileLoad, setLoadingText, setLoadProgress: setParentProg
       }
       
       // Step 3: Load parquet using DuckDB WASM
-      const parquetUrl = `http://localhost:8000/flight-features/parquet/download?${params}`;
+      const parquetUrl = `${API_BASE}/flight-features/parquet/download?${params}`;
       
       const result = await loadParquetFromUrl(parquetUrl, (stage, percent, rows) => {
         setLoadProgress({ stage, percent, rows, total: 0 });

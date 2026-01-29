@@ -1,7 +1,6 @@
 // file: components/DbViewer.tsx
 import { useState, useEffect, useCallback } from 'react';
-
-const API_BASE = 'http://localhost:8000';
+import { API_BASE } from '../config/api';
 const PAGE_SIZE = 50;
 
 // Hide scrollbar CSS for webkit browsers
