@@ -325,20 +325,25 @@ function FilePicker({ onFileLoad, setLoadingText, setLoadProgress: setParentProg
       });
   }, []);
 
-  // Load airport codes when dataset is selected
+  // Load airport codes when dataset is selected (optional - needs tunnel)
   useEffect(() => {
     if (!selectedDataset) {
       setDepCodes([]);
       setDestCodes([]);
       return;
     }
+    // Airport filter is optional - only works when tunnel is running
     apiFetch(`${API_BASE}/flight-features/airports-from-dataset?dataset=${selectedDataset}`)
       .then(res => res.json())
       .then(data => {
         setDepCodes(data.dep_codes || []);
         setDestCodes(data.dest_codes || []);
       })
-      .catch(() => {});
+      .catch(() => {
+        // Tunnel not running - airport filter won't work but loading still works
+        setDepCodes([]);
+        setDestCodes([]);
+      });
   }, [selectedDataset]);
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
