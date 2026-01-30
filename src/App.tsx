@@ -383,7 +383,7 @@ function FilePicker({ onFileLoad, setLoadingText, setLoadProgress: setParentProg
       }
       
       // Step 3: Load parquet using DuckDB WASM - use regular fetch for file download
-      const parquetUrl = `${API_BASE}/flight-features/parquet/download?${params}?ngrok-skip-browser-warning=true`;
+      const parquetUrl = `${API_BASE}/flight-features/parquet/download?${params}`;
       
       const result = await loadParquetFromUrl(parquetUrl, (stage, percent, rows) => {
         setLoadProgress({ stage, percent, rows, total: 0 });
