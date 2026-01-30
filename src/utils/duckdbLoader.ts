@@ -13,25 +13,40 @@ const CONFIG = {
 
 let db: duckdb.AsyncDuckDB | null = null;
 let conn: duckdb.AsyncDuckDBConnection | null = null;
+let initPromise: Promise<duckdb.AsyncDuckDB> | null = null;
 
 async function initDuckDB(): Promise<duckdb.AsyncDuckDB> {
   if (db) return db;
+  
+  // Prevent multiple simultaneous initializations
+  if (initPromise) return initPromise;
 
-  const JSDELIVR_BUNDLES = duckdb.getJsDelivrBundles();
-  const bundle = await duckdb.selectBundle(JSDELIVR_BUNDLES);
+  initPromise = (async () => {
+    console.log('[DuckDB] Starting initialization...');
+    const startTime = performance.now();
+    
+    const JSDELIVR_BUNDLES = duckdb.getJsDelivrBundles();
+    const bundle = await duckdb.selectBundle(JSDELIVR_BUNDLES);
 
-  const worker_url = URL.createObjectURL(
-    new Blob([`importScripts("${bundle.mainWorker}");`], { type: 'text/javascript' })
-  );
+    const worker_url = URL.createObjectURL(
+      new Blob([`importScripts("${bundle.mainWorker}");`], { type: 'text/javascript' })
+    );
 
-  const worker = new Worker(worker_url);
-  const logger = new duckdb.ConsoleLogger();
-  db = new duckdb.AsyncDuckDB(logger, worker);
-  await db.instantiate(bundle.mainModule, bundle.pthreadWorker);
-  URL.revokeObjectURL(worker_url);
+    const worker = new Worker(worker_url);
+    const logger = new duckdb.ConsoleLogger();
+    db = new duckdb.AsyncDuckDB(logger, worker);
+    await db.instantiate(bundle.mainModule, bundle.pthreadWorker);
+    URL.revokeObjectURL(worker_url);
 
-  return db;
+    console.log(`[DuckDB] Initialized in ${(performance.now() - startTime).toFixed(0)}ms`);
+    return db;
+  })();
+
+  return initPromise;
 }
+
+// Pre-initialize DuckDB when module loads (background)
+initDuckDB().catch(err => console.warn('[DuckDB] Pre-init failed:', err));
 
 async function getConnection(): Promise<duckdb.AsyncDuckDBConnection> {
   if (conn) return conn;
