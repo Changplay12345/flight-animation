@@ -1,7 +1,7 @@
 // file: config/api.ts
 // API configuration - uses environment variable or falls back to localhost
 
-export const API_BASE = 'http://192.168.27.150:8000';
+export const API_BASE = 'https://predicted-sunshine-adequate-brand.trycloudflare.com';
 
 // Helper function for API calls
 export async function apiFetch(url: string, options?: RequestInit) {
