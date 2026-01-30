@@ -68,8 +68,8 @@ async def get_preview_count(date: str, airport: str = ""):
 
 @app.get("/flight-features/datasets")
 async def list_datasets():
-    """List all created flight feature datasets"""
-    return await flight_features.list_flight_feature_datasets(engine)
+    """List all flight feature datasets available in R2"""
+    return list_parquets_in_r2()
 
 
 @app.post("/flight-features/create")
