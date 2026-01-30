@@ -352,7 +352,7 @@ function FilePicker({ onFileLoad, setLoadingText, setLoadProgress: setParentProg
     if (!selectedDataset) return;
     
     setLoadingDatasets(true);
-    setLoadProgress({ stage: 'Loading from R2', percent: 10, rows: 0, total: 0 });
+    setLoadProgress({ stage: 'Getting R2 URL', percent: 5, rows: 0, total: 0 });
     setLoadingText(`Loading ${selectedDataset}...`);
     
     try {
@@ -360,8 +360,17 @@ function FilePicker({ onFileLoad, setLoadingText, setLoadProgress: setParentProg
       if (selectedDep) params.append('dep', selectedDep);
       if (selectedDest) params.append('dest', selectedDest);
       
-      // Load parquet directly from R2 via redirect
-      const parquetUrl = `${API_BASE}/flight-features/parquet/download?${params}`;
+      // Get R2 URL from check endpoint
+      const checkRes = await apiFetch(`${API_BASE}/flight-features/parquet/check?${params}`);
+      const checkData = await checkRes.json();
+      
+      if (!checkData.exists) {
+        throw new Error('Parquet not found in R2. Please create the dataset first.');
+      }
+      
+      // Use R2 URL directly for faster CDN download
+      const parquetUrl = checkData.r2_url || `${API_BASE}/flight-features/parquet/download?${params}`;
+      console.log('Loading parquet from:', parquetUrl);
       
       const result = await loadParquetFromUrl(parquetUrl, (stage, percent, rows) => {
         setLoadProgress({ stage, percent, rows, total: 0 });
