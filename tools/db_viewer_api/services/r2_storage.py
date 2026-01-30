@@ -97,3 +97,34 @@ def delete_parquet_from_r2(object_key: str) -> bool:
         return True
     except:
         return False
+
+
+def list_parquets_in_r2() -> list[dict]:
+    """
+    List all parquet files in R2 bucket.
+    
+    Returns:
+        List of parquet file info with name and public URL
+    """
+    try:
+        response = s3_client.list_objects_v2(Bucket=R2_BUCKET_NAME)
+        files = []
+        
+        if 'Contents' in response:
+            for obj in response['Contents']:
+                key = obj['Key']
+                if key.endswith('.parquet'):
+                    # Extract dataset name from filename
+                    dataset_name = key.replace('.parquet', '')
+                    files.append({
+                        "table_name": dataset_name,
+                        "r2_url": f"{R2_PUBLIC_URL}/{key}",
+                        "size_bytes": obj['Size'],
+                        "size_mb": round(obj['Size'] / 1024 / 1024, 2),
+                        "last_modified": obj['LastModified'].isoformat()
+                    })
+        
+        return files
+    except Exception as e:
+        print(f"Error listing R2 bucket: {e}")
+        return []

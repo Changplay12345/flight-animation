@@ -8,6 +8,7 @@ import os
 from db import engine
 from services import schemas, tables, data, flight_features
 from services import parquet_export
+from services.r2_storage import list_parquets_in_r2
 
 app = FastAPI(title="DB Viewer API", version="1.0.0")
 
@@ -147,8 +148,8 @@ async def check_parquet(dataset: str, dep: str = "", dest: str = ""):
 
 @app.get("/flight-features/parquet/list")
 async def list_parquet_files():
-    """List all available Parquet files"""
-    return await parquet_export.list_parquet_files()
+    """List all available Parquet files from R2 bucket"""
+    return list_parquets_in_r2()
 
 
 @app.get("/flight-features/parquet/download")
