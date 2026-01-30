@@ -442,7 +442,34 @@ function FilePicker({ onFileLoad, setLoadingText, setLoadProgress: setParentProg
         {/* Database Tab */}
         {activeTab === 'database' && (
           <>
-            <label style={styles.label}>Dataset</label>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <label style={styles.label}>Dataset</label>
+              <button
+                onClick={() => {
+                  console.log('Refreshing datasets via tunnel...');
+                  apiFetch(`${API_BASE}/flight-features/datasets`)
+                    .then(res => res.ok ? res.json() : Promise.reject('Tunnel not available'))
+                    .then(data => {
+                      if (Array.isArray(data)) {
+                        const names = data.map((d: { table_name: string }) => d.table_name);
+                        const urlMap: Record<string, string> = {};
+                        data.forEach((d: { table_name: string; r2_url?: string }) => {
+                          if (d.r2_url) urlMap[d.table_name] = d.r2_url;
+                        });
+                        setDatasetInfo(urlMap);
+                        setDatasets(names);
+                        if (names.length > 0) setSelectedDataset(names[0]);
+                        alert(`Refreshed! Found ${names.length} datasets.`);
+                      }
+                    })
+                    .catch(() => alert('Refresh failed. Make sure tunnel is running.'));
+                }}
+                style={{ padding: '2px 8px', fontSize: '12px', cursor: 'pointer' }}
+                title="Refresh dataset list (requires tunnel)"
+              >
+                🔄
+              </button>
+            </div>
             <select 
               value={selectedDataset} 
               onChange={(e) => setSelectedDataset(e.target.value)}
