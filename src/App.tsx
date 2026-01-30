@@ -274,6 +274,9 @@ function FilePicker({ onFileLoad, setLoadingText, setLoadProgress: setParentProg
     setParentProgress?.(p);
   };
 
+  // Store dataset info with R2 URLs
+  const [datasetInfo, setDatasetInfo] = useState<Record<string, string>>({});
+
   // Load available datasets on mount
   useEffect(() => {
     console.log('Fetching datasets...');
@@ -286,7 +289,14 @@ function FilePicker({ onFileLoad, setLoadingText, setLoadProgress: setParentProg
         console.log('Datasets API response:', data);
         if (Array.isArray(data)) {
           const names = data.map((d: { table_name: string }) => d.table_name);
+          // Store R2 URLs for each dataset
+          const urlMap: Record<string, string> = {};
+          data.forEach((d: { table_name: string; r2_url?: string }) => {
+            if (d.r2_url) urlMap[d.table_name] = d.r2_url;
+          });
+          setDatasetInfo(urlMap);
           console.log('Dataset names:', names);
+          console.log('R2 URLs:', urlMap);
           setDatasets(names);
           if (names.length > 0) {
             setSelectedDataset(names[0]);
@@ -352,25 +362,18 @@ function FilePicker({ onFileLoad, setLoadingText, setLoadProgress: setParentProg
     if (!selectedDataset) return;
     
     setLoadingDatasets(true);
-    setLoadProgress({ stage: 'Getting R2 URL', percent: 5, rows: 0, total: 0 });
+    setLoadProgress({ stage: 'Loading from R2', percent: 5, rows: 0, total: 0 });
     setLoadingText(`Loading ${selectedDataset}...`);
     
     try {
-      const params = new URLSearchParams({ dataset: selectedDataset });
-      if (selectedDep) params.append('dep', selectedDep);
-      if (selectedDest) params.append('dest', selectedDest);
+      // Use R2 URL directly from dataset list (no tunnel needed)
+      const parquetUrl = datasetInfo[selectedDataset];
       
-      // Get R2 URL from check endpoint
-      const checkRes = await apiFetch(`${API_BASE}/flight-features/parquet/check?${params}`);
-      const checkData = await checkRes.json();
-      
-      if (!checkData.exists) {
-        throw new Error('Parquet not found in R2. Please create the dataset first.');
+      if (!parquetUrl) {
+        throw new Error('R2 URL not found for this dataset. Please refresh the page.');
       }
       
-      // Use R2 URL directly for faster CDN download
-      const parquetUrl = checkData.r2_url || `${API_BASE}/flight-features/parquet/download?${params}`;
-      console.log('Loading parquet from:', parquetUrl);
+      console.log('Loading parquet from R2:', parquetUrl);
       
       const result = await loadParquetFromUrl(parquetUrl, (stage, percent, rows) => {
         setLoadProgress({ stage, percent, rows, total: 0 });
