@@ -124,7 +124,28 @@ def list_parquets_in_r2() -> list[dict]:
                         "last_modified": obj['LastModified'].isoformat()
                     })
         
+        # Update manifest file in R2 for direct access
+        update_manifest_in_r2(files)
+        
         return files
     except Exception as e:
         print(f"Error listing R2 bucket: {e}")
         return []
+
+
+def update_manifest_in_r2(files: list[dict]) -> None:
+    """
+    Update the datasets.json manifest file in R2.
+    This allows the frontend to fetch the list directly from R2 without tunnel.
+    """
+    import json
+    try:
+        manifest = json.dumps(files)
+        s3_client.put_object(
+            Bucket=R2_BUCKET_NAME,
+            Key='datasets.json',
+            Body=manifest.encode('utf-8'),
+            ContentType='application/json'
+        )
+    except Exception as e:
+        print(f"Error updating manifest: {e}")
