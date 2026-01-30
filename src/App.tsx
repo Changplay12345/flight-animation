@@ -277,53 +277,33 @@ function FilePicker({ onFileLoad, setLoadingText, setLoadProgress: setParentProg
   // Store dataset info with R2 URLs
   const [datasetInfo, setDatasetInfo] = useState<Record<string, string>>({});
 
-  // Load available datasets from R2 directly (no tunnel needed)
-  useEffect(() => {
-    console.log('Fetching datasets from R2...');
-    fetch(`${R2_PUBLIC_URL}/datasets.json`)
-      .then(res => {
-        console.log('R2 datasets response status:', res.status);
-        if (!res.ok) throw new Error('datasets.json not found in R2');
-        return res.json();
-      })
-      .then(data => {
-        console.log('R2 datasets response:', data);
-        if (Array.isArray(data)) {
-          const names = data.map((d: { table_name: string }) => d.table_name);
-          // Store R2 URLs for each dataset
-          const urlMap: Record<string, string> = {};
-          data.forEach((d: { table_name: string; r2_url?: string }) => {
-            if (d.r2_url) urlMap[d.table_name] = d.r2_url;
-          });
-          setDatasetInfo(urlMap);
-          console.log('Dataset names:', names);
-          console.log('R2 URLs:', urlMap);
-          setDatasets(names);
-          if (names.length > 0) {
-            setSelectedDataset(names[0]);
-          }
-        }
-      })
-      .catch(err => {
-        console.error('Failed to load from R2, trying tunnel:', err);
-        // Fallback to tunnel if R2 manifest doesn't exist
-        apiFetch(`${API_BASE}/flight-features/datasets`)
-          .then(res => res.json())
-          .then(data => {
-            if (Array.isArray(data)) {
-              const names = data.map((d: { table_name: string }) => d.table_name);
-              const urlMap: Record<string, string> = {};
-              data.forEach((d: { table_name: string; r2_url?: string }) => {
-                if (d.r2_url) urlMap[d.table_name] = d.r2_url;
-              });
-              setDatasetInfo(urlMap);
-              setDatasets(names);
-              if (names.length > 0) setSelectedDataset(names[0]);
-            }
-          })
+  // Load available datasets - try tunnel first (updates manifest), fallback to R2 cache
+  const loadDatasets = () => {
+    const processData = (data: Array<{ table_name: string; r2_url?: string }>) => {
+      const names = data.map(d => d.table_name);
+      const urlMap: Record<string, string> = {};
+      data.forEach(d => { if (d.r2_url) urlMap[d.table_name] = d.r2_url; });
+      setDatasetInfo(urlMap);
+      setDatasets(names);
+      if (names.length > 0 && !selectedDataset) setSelectedDataset(names[0]);
+      console.log('Loaded datasets:', names);
+    };
+
+    // Try tunnel first (this updates the manifest in R2)
+    apiFetch(`${API_BASE}/flight-features/datasets`)
+      .then(res => res.ok ? res.json() : Promise.reject('Tunnel not available'))
+      .then(data => { if (Array.isArray(data)) processData(data); })
+      .catch(() => {
+        // Fallback to R2 cached manifest
+        console.log('Tunnel unavailable, using R2 cache...');
+        fetch(`${R2_PUBLIC_URL}/datasets.json`)
+          .then(res => res.ok ? res.json() : Promise.reject('R2 cache not found'))
+          .then(data => { if (Array.isArray(data)) processData(data); })
           .catch(e => console.error('Failed to load datasets:', e));
       });
-  }, []);
+  };
+
+  useEffect(() => { loadDatasets(); }, []);
 
   // Load airport codes when dataset is selected (optional - needs tunnel)
   useEffect(() => {
