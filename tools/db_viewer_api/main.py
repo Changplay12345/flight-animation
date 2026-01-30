@@ -153,7 +153,9 @@ async def list_parquet_files():
 
 @app.get("/flight-features/parquet/download")
 async def download_parquet(dataset: str, dep: str = "", dest: str = ""):
-    """Download the Parquet file for a dataset"""
+    """Download the Parquet file for a dataset - redirects to R2 if available"""
+    from fastapi.responses import RedirectResponse
+    
     info = parquet_export.parquet_exists(
         dataset,
         dep=dep if dep else None,
@@ -163,6 +165,11 @@ async def download_parquet(dataset: str, dep: str = "", dest: str = ""):
     if not info["exists"]:
         return {"error": "Parquet file not found. Generate it first."}
     
+    # If R2 URL is available, redirect to it for faster CDN download
+    if "r2_url" in info:
+        return RedirectResponse(url=info["r2_url"], status_code=302)
+    
+    # Fall back to local file serving
     return FileResponse(
         info["path"],
         media_type="application/octet-stream",
