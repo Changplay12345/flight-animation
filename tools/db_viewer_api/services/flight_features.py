@@ -280,6 +280,13 @@ async def create_flight_feature_dataset(
             result = await conn.execute(count_query)
             row_count = result.scalar()
         
+        # Generate parquet and upload to R2 immediately
+        from . import parquet_export
+        parquet_result = await parquet_export.generate_parquet(engine, dataset_name)
+        
+        r2_url = parquet_result.get("r2_url")
+        parquet_size_mb = parquet_result.get("size_mb")
+        
         return {
             "success": True,
             "dataset_name": dataset_name,
@@ -289,6 +296,8 @@ async def create_flight_feature_dataset(
             "date": date_str,
             "sur_air_table": sur_air_table,
             "track_table": track_table,
+            "r2_url": r2_url,
+            "parquet_size_mb": parquet_size_mb,
         }
         
     except Exception as e:

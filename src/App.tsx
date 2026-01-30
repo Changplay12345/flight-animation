@@ -352,7 +352,7 @@ function FilePicker({ onFileLoad, setLoadingText, setLoadProgress: setParentProg
     if (!selectedDataset) return;
     
     setLoadingDatasets(true);
-    setLoadProgress({ stage: 'Checking parquet', percent: 5, rows: 0, total: 0 });
+    setLoadProgress({ stage: 'Loading from R2', percent: 10, rows: 0, total: 0 });
     setLoadingText(`Loading ${selectedDataset}...`);
     
     try {
@@ -360,29 +360,7 @@ function FilePicker({ onFileLoad, setLoadingText, setLoadProgress: setParentProg
       if (selectedDep) params.append('dep', selectedDep);
       if (selectedDest) params.append('dest', selectedDest);
       
-      // Step 1: Check if parquet exists
-      const checkRes = await apiFetch(`${API_BASE}/flight-features/parquet/check?${params}`);
-      const checkData = await checkRes.json();
-      
-      // Step 2: Generate parquet if not exists
-      if (!checkData.exists) {
-        setLoadProgress({ stage: 'Generating parquet', percent: 10, rows: 0, total: 0 });
-        setLoadingText('Generating parquet file (one-time)...');
-        
-        const genRes = await apiFetch(`${API_BASE}/flight-features/parquet/generate?${params}`, {
-          method: 'POST'
-        });
-        const genData = await genRes.json();
-        
-        if (!genData.success) {
-          throw new Error(genData.error || 'Failed to generate parquet');
-        }
-        
-        setLoadProgress({ stage: 'Parquet ready', percent: 25, rows: genData.rows || 0, total: 0 });
-        setLoadingText(`Parquet generated: ${genData.size_mb} MB`);
-      }
-      
-      // Step 3: Load parquet using DuckDB WASM - use regular fetch for file download
+      // Load parquet directly from R2 via redirect
       const parquetUrl = `${API_BASE}/flight-features/parquet/download?${params}`;
       
       const result = await loadParquetFromUrl(parquetUrl, (stage, percent, rows) => {
