@@ -1992,9 +1992,87 @@ function FilterPanel() {
   const [destOpen, setDestOpen] = useState(false);
   const [actypeOpen, setActypeOpen] = useState(false);
   const [airportFilterOpen, setAirportFilterOpen] = useState(false);
+  const [filterTab, setFilterTab] = useState<'filter' | 'airline'>('filter');
   
   const airportFilterCode = useFlightStore(state => state.airportFilterCode);
   const setAirportFilterCode = useFlightStore(state => state.setAirportFilterCode);
+  
+  // Airline mode state
+  const airlineModeEnabled = useFlightStore(state => state.airlineModeEnabled);
+  const setAirlineModeEnabled = useFlightStore(state => state.setAirlineModeEnabled);
+  const airlineColors = useFlightStore(state => state.airlineColors);
+  const setAirlineColors = useFlightStore(state => state.setAirlineColors);
+  const selectedAirlines = useFlightStore(state => state.selectedAirlines);
+  const setSelectedAirlines = useFlightStore(state => state.setSelectedAirlines);
+  
+  // Load airlines from CSV and extract from flight keys
+  const [airlinesData, setAirlinesData] = useState<Record<string, { name: string; color: string }>>({});
+  
+  // Extract unique airlines from flight keys (first 3 characters)
+  const extractedAirlines = useMemo(() => {
+    const airlines: Record<string, number> = {};
+    Object.keys(flightMeta).forEach(key => {
+      const airlineCode = key.substring(0, 3).toUpperCase();
+      airlines[airlineCode] = (airlines[airlineCode] || 0) + 1;
+    });
+    return Object.entries(airlines).sort((a, b) => b[1] - a[1]);
+  }, [flightMeta]);
+  
+  // Load airlines CSV on mount
+  useEffect(() => {
+    fetch('/airlines.csv')
+      .then(res => res.text())
+      .then(text => {
+        const lines = text.trim().split('\n');
+        const data: Record<string, { name: string; color: string }> = {};
+        lines.slice(1).forEach(line => {
+          const [code, name, color] = line.split(',');
+          if (code && name && color) {
+            data[code.trim()] = { name: name.trim(), color: color.trim() };
+          }
+        });
+        setAirlinesData(data);
+        
+        // Generate colors for airlines not in CSV
+        const generatedColors: Record<string, string> = {};
+        const defaultColors = [
+          '#e94560', '#00d9ff', '#ffd700', '#00ff88', '#ff6b6b',
+          '#4ecdc4', '#ff9f43', '#a55eea', '#26de81', '#fd79a8',
+          '#74b9ff', '#ffeaa7', '#81ecec', '#fab1a0', '#ff7675',
+          '#a29bfe', '#fdcb6e', '#6c5ce7', '#00b894', '#e17055'
+        ];
+        let colorIdx = 0;
+        Object.keys(flightMeta).forEach(key => {
+          const airlineCode = key.substring(0, 3).toUpperCase();
+          if (!generatedColors[airlineCode]) {
+            if (data[airlineCode]) {
+              generatedColors[airlineCode] = data[airlineCode].color;
+            } else {
+              generatedColors[airlineCode] = defaultColors[colorIdx % defaultColors.length];
+              colorIdx++;
+            }
+          }
+        });
+        setAirlineColors(generatedColors);
+      })
+      .catch(() => {
+        // Generate colors if CSV fails to load
+        const defaultColors = [
+          '#e94560', '#00d9ff', '#ffd700', '#00ff88', '#ff6b6b',
+          '#4ecdc4', '#ff9f43', '#a55eea', '#26de81', '#fd79a8'
+        ];
+        const generatedColors: Record<string, string> = {};
+        let colorIdx = 0;
+        Object.keys(flightMeta).forEach(key => {
+          const airlineCode = key.substring(0, 3).toUpperCase();
+          if (!generatedColors[airlineCode]) {
+            generatedColors[airlineCode] = defaultColors[colorIdx % defaultColors.length];
+            colorIdx++;
+          }
+        });
+        setAirlineColors(generatedColors);
+      });
+  }, [flightMeta, setAirlineColors]);
   
   // Route data with counts
   const routeData = useMemo(() => {
@@ -2105,6 +2183,24 @@ function FilterPanel() {
         <button onClick={() => setFilterPanelOpen(false)}>×</button>
       </div>
       
+      {/* Tab buttons */}
+      <div className="filter-tabs">
+        <button 
+          className={`filter-tab ${filterTab === 'filter' ? 'active' : ''}`}
+          onClick={() => setFilterTab('filter')}
+        >
+          🔍 Filter
+        </button>
+        <button 
+          className={`filter-tab ${filterTab === 'airline' ? 'active' : ''}`}
+          onClick={() => setFilterTab('airline')}
+        >
+          ✈️ Airlines
+        </button>
+      </div>
+      
+      {filterTab === 'filter' && (
+      <>
       <div className="filter-section">
         <label>Search</label>
         <input
@@ -2339,6 +2435,72 @@ function FilterPanel() {
           )}
         </div>
       </div>
+      </>
+      )}
+      
+      {/* Airline Mode Tab */}
+      {filterTab === 'airline' && (
+        <div className="filter-section">
+          <div className="filter-row" style={{ marginBottom: '12px' }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+              <input
+                type="checkbox"
+                checked={airlineModeEnabled}
+                onChange={(e) => setAirlineModeEnabled(e.target.checked)}
+              />
+              <span>Enable Airline Colors</span>
+            </label>
+          </div>
+          
+          <label>Airlines ({extractedAirlines.length})</label>
+          <div className="filter-buttons" style={{ marginBottom: '8px' }}>
+            <button onClick={() => setSelectedAirlines(extractedAirlines.map(([code]) => code))}>
+              Select All
+            </button>
+            <button onClick={() => setSelectedAirlines([])}>
+              Clear All
+            </button>
+          </div>
+          
+          <div id="filter-results" style={{ maxHeight: '300px' }}>
+            {extractedAirlines.map(([code, count]) => {
+              const isSelected = selectedAirlines.includes(code);
+              const color = airlineColors[code] || '#888';
+              const airlineInfo = airlinesData[code];
+              return (
+                <div 
+                  key={code}
+                  className={`filter-flight-item ${isSelected ? 'visible' : ''}`}
+                  style={{ cursor: 'pointer' }}
+                  onClick={() => {
+                    if (isSelected) {
+                      setSelectedAirlines(selectedAirlines.filter(a => a !== code));
+                    } else {
+                      setSelectedAirlines([...selectedAirlines, code]);
+                    }
+                  }}
+                >
+                  <div 
+                    className="flight-color" 
+                    style={{ background: color }}
+                  />
+                  <div className="flight-info">
+                    <span className="flight-key">{code}</span>
+                    <span className="flight-details">{airlineInfo?.name || 'Unknown'}</span>
+                    <span className="flight-route">{count} flights</span>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={isSelected}
+                    onChange={() => {}}
+                    style={{ pointerEvents: 'none' }}
+                  />
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -2831,13 +2993,28 @@ function FlightRenderer() {
           if (pos && pos.visible) {
             marker.setLatLng([pos.lat, pos.lon]);
             
-            // Determine icon color - airport filter overrides other colors
+            // Determine icon color - priority: airport filter > airline mode > FL trails > default
             let iconColor = fm.color;
+            const airlineModeOn = useFlightStore.getState().airlineModeEnabled;
+            const airlineColorsMap = useFlightStore.getState().airlineColors;
+            const selectedAirlinesList = useFlightStore.getState().selectedAirlines;
+            
             if (airportFilter) {
               const matchesDep = fm.dep?.toUpperCase() === airportFilter.toUpperCase();
               const matchesDest = fm.dest?.toUpperCase() === airportFilter.toUpperCase();
               if (matchesDep) iconColor = '#0088ff'; // Blue for departing
               else if (matchesDest) iconColor = '#ffcc00'; // Yellow for arriving
+            } else if (airlineModeOn) {
+              // Airline mode - color by airline code (first 3 chars of flight key)
+              const airlineCode = key.substring(0, 3).toUpperCase();
+              if (airlineColorsMap[airlineCode]) {
+                iconColor = airlineColorsMap[airlineCode];
+              }
+              // If airlines are selected, hide flights not in selection
+              if (selectedAirlinesList.length > 0 && !selectedAirlinesList.includes(airlineCode)) {
+                if (map.hasLayer(marker)) map.removeLayer(marker);
+                continue;
+              }
             } else if (flTrailsOn && pos.fl !== null) {
               const flColor = flToColor(pos.fl, minFL, maxFL, useFlightStore.getState().lightMode);
               if (flColor) iconColor = flColor;

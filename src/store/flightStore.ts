@@ -130,6 +130,11 @@ interface FlightStore {
   // Airport Filter (DEP/DEST color override)
   airportFilterCode: string; // Selected airport ICAO code for filtering
   
+  // Airline Mode (color by airline)
+  airlineModeEnabled: boolean;
+  airlineColors: Record<string, string>; // airline code -> color
+  selectedAirlines: string[]; // selected airlines to show
+  
   // Actions
   setFlights: (flights: Record<string, FlightPoint[]>, meta: Record<string, FlightMeta>, stats: { minFL: number; maxFL: number; totalRows: number }) => void;
   setVisibility: (key: string, visible: boolean) => void;
@@ -207,6 +212,11 @@ interface FlightStore {
   
   setAirportFilterCode: (code: string) => void;
   
+  // Airline mode actions
+  setAirlineModeEnabled: (enabled: boolean) => void;
+  setAirlineColors: (colors: Record<string, string>) => void;
+  setSelectedAirlines: (airlines: string[]) => void;
+  
   updateTimelineBounds: (flightKeys: string[] | null) => void;
 }
 
@@ -244,7 +254,7 @@ export const useFlightStore = create<FlightStore>((set, get) => ({
   },
   filterPanelOpen: false,
   lockedFlightKey: null,
-  lightMode: true,
+  lightMode: false,
   satelliteMode: false,
   uiHidden: false,
   airwaysVisible: false,
@@ -315,6 +325,11 @@ export const useFlightStore = create<FlightStore>((set, get) => ({
   
   // Airport Filter
   airportFilterCode: '',
+  
+  // Airline Mode
+  airlineModeEnabled: false,
+  airlineColors: {},
+  selectedAirlines: [],
   
   setFlights: (flights, meta, stats) => {
     const keys = Object.keys(flights);
@@ -520,6 +535,11 @@ export const useFlightStore = create<FlightStore>((set, get) => ({
     }
   },
   
+  // Airline mode actions
+  setAirlineModeEnabled: (enabled) => set({ airlineModeEnabled: enabled }),
+  setAirlineColors: (colors) => set({ airlineColors: colors }),
+  setSelectedAirlines: (airlines) => set({ selectedAirlines: airlines }),
+  
   lockToFlight: (key) => {
     const { lockedFlightKey, flightMeta, setVisibility } = get();
     // Toggle lock if clicking same flight
@@ -636,4 +656,9 @@ export const setColorLightMode = (light: boolean) => {
 export const getFlightColorAuto = (index: number) => {
   const colors = currentLightMode ? COLORS_LIGHT : COLORS_DARK;
   return colors[index % colors.length];
+};
+
+// Get airline code from flight key (first 3 characters)
+export const getAirlineCode = (flightKey: string) => {
+  return flightKey.substring(0, 3).toUpperCase();
 };

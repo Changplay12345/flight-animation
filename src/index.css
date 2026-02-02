@@ -891,6 +891,53 @@ body.light-mode .airway-dropdown .opacity-value {
   color: #fff;
 }
 
+/* Filter Tabs */
+.filter-tabs {
+  display: flex;
+  border-bottom: 1px solid #3a3a5a;
+}
+
+.filter-tab {
+  flex: 1;
+  padding: 10px 12px;
+  background: transparent;
+  border: none;
+  color: #888;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.filter-tab:hover {
+  background: rgba(255,255,255,0.05);
+  color: #fff;
+}
+
+.filter-tab.active {
+  background: rgba(0,217,255,0.1);
+  color: #00d9ff;
+  border-bottom: 2px solid #00d9ff;
+}
+
+body.light-mode .filter-tabs {
+  border-bottom-color: #ddd;
+}
+
+body.light-mode .filter-tab {
+  color: #666;
+}
+
+body.light-mode .filter-tab:hover {
+  background: rgba(0,0,0,0.05);
+  color: #333;
+}
+
+body.light-mode .filter-tab.active {
+  background: rgba(33,150,243,0.1);
+  color: #2196f3;
+  border-bottom-color: #2196f3;
+}
+
 .filter-section {
   padding: 12px 15px;
   border-bottom: 1px solid #2a2a4a;
@@ -3509,6 +3556,299 @@ body.light-mode .airport-search input {
 body.light-mode .airport-search input:focus {
   border-color: #2196f3;
   background: rgba(0,0,0,0.08);
+}
+
+/* ============== Responsive Design for Mobile/iPad ============== */
+
+/* Tablet (iPad) - screens up to 1024px */
+@media screen and (max-width: 1024px) {
+  #timeline-container {
+    padding: 6px 10px;
+  }
+  
+  #playback-controls {
+    padding: 6px 10px;
+  }
+  
+  #playback-controls button {
+    padding: 6px 10px;
+    font-size: 12px;
+  }
+  
+  #flight-panel {
+    width: 240px;
+    max-height: calc(100vh - 150px);
+  }
+  
+  #filter-panel {
+    width: 260px;
+    max-height: calc(100vh - 150px);
+  }
+  
+  #options-panel {
+    width: 280px;
+  }
+  
+  .theme-controls {
+    bottom: 80px;
+  }
+}
+
+/* Mobile landscape and small tablets - screens up to 768px */
+@media screen and (max-width: 768px) {
+  #timeline-container {
+    top: 40px;
+    height: 36px;
+    padding: 4px 8px;
+  }
+  
+  #playback-controls {
+    top: 76px;
+    padding: 4px 8px;
+    gap: 4px;
+  }
+  
+  #playback-controls button {
+    padding: 4px 8px;
+    font-size: 11px;
+  }
+  
+  #playback-controls .speed-control {
+    font-size: 11px;
+  }
+  
+  #flight-panel {
+    width: 200px;
+    max-height: calc(100vh - 180px);
+    top: 120px;
+    font-size: 12px;
+  }
+  
+  #flight-panel-header {
+    padding: 8px 10px;
+    font-size: 13px;
+  }
+  
+  .flight-item {
+    padding: 6px 8px;
+    font-size: 11px;
+  }
+  
+  #filter-panel {
+    width: 220px;
+    max-height: calc(100vh - 180px);
+    top: 120px;
+    font-size: 12px;
+  }
+  
+  .filter-header {
+    padding: 8px 10px;
+    font-size: 13px;
+  }
+  
+  .filter-section {
+    padding: 8px 10px;
+  }
+  
+  .filter-section label {
+    font-size: 11px;
+  }
+  
+  .filter-section input[type="text"],
+  .filter-section select {
+    padding: 6px 8px;
+    font-size: 12px;
+  }
+  
+  #options-panel {
+    width: 240px;
+    max-height: calc(100vh - 180px);
+  }
+  
+  .options-tabs {
+    flex-wrap: wrap;
+  }
+  
+  .options-tab {
+    padding: 6px 8px;
+    font-size: 11px;
+  }
+  
+  .theme-controls {
+    bottom: 60px;
+    right: 8px;
+  }
+  
+  .theme-buttons button {
+    width: 36px;
+    height: 36px;
+    font-size: 16px;
+  }
+  
+  #fl-legend {
+    bottom: 60px;
+    left: 8px;
+    padding: 6px 10px;
+    font-size: 11px;
+  }
+}
+
+/* Mobile portrait - screens up to 480px */
+@media screen and (max-width: 480px) {
+  #timeline-container {
+    top: 35px;
+    height: 32px;
+    padding: 3px 6px;
+  }
+  
+  #timeline-time {
+    font-size: 10px;
+  }
+  
+  #playback-controls {
+    top: 67px;
+    height: auto;
+    padding: 3px 6px;
+    gap: 3px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  
+  #playback-controls button {
+    padding: 3px 6px;
+    font-size: 10px;
+  }
+  
+  #flight-panel {
+    position: fixed;
+    left: 5px;
+    right: 5px;
+    top: auto;
+    bottom: 60px;
+    width: auto;
+    max-height: 40vh;
+    border-radius: 8px;
+  }
+  
+  #filter-panel {
+    position: fixed;
+    left: 5px;
+    right: 5px;
+    top: auto;
+    bottom: 60px;
+    width: auto;
+    max-height: 50vh;
+    border-radius: 8px;
+  }
+  
+  .filter-tabs {
+    flex-wrap: nowrap;
+  }
+  
+  .filter-tab {
+    padding: 8px 6px;
+    font-size: 11px;
+  }
+  
+  #options-panel {
+    position: fixed;
+    left: 5px;
+    right: 5px;
+    top: auto;
+    bottom: 60px;
+    width: auto;
+    max-height: 50vh;
+    border-radius: 8px;
+  }
+  
+  .options-tabs {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  .options-tab {
+    flex-shrink: 0;
+    padding: 6px 8px;
+    font-size: 10px;
+    white-space: nowrap;
+  }
+  
+  .theme-controls {
+    bottom: 10px;
+    right: 5px;
+  }
+  
+  .theme-buttons {
+    flex-direction: row;
+  }
+  
+  .theme-buttons button {
+    width: 32px;
+    height: 32px;
+    font-size: 14px;
+  }
+  
+  #fl-legend {
+    bottom: 10px;
+    left: 5px;
+    padding: 4px 8px;
+    font-size: 10px;
+  }
+  
+  /* Hide some elements on very small screens */
+  .flight-route {
+    display: none;
+  }
+  
+  .flight-details {
+    font-size: 10px;
+  }
+  
+  /* Combobox adjustments */
+  .combobox input {
+    font-size: 12px;
+    padding: 6px 8px;
+  }
+  
+  .dropdown-list {
+    max-height: 150px;
+  }
+  
+  .dropdown-item {
+    padding: 6px 8px;
+    font-size: 11px;
+  }
+}
+
+/* Touch device optimizations */
+@media (hover: none) and (pointer: coarse) {
+  /* Larger touch targets */
+  button, 
+  .flight-item,
+  .filter-flight-item,
+  .dropdown-item,
+  .options-row {
+    min-height: 44px;
+  }
+  
+  input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+  }
+  
+  /* Disable hover effects that don't work well on touch */
+  .flight-item:hover,
+  .filter-flight-item:hover,
+  .dropdown-item:hover {
+    background: inherit;
+  }
+  
+  .flight-item:active,
+  .filter-flight-item:active,
+  .dropdown-item:active {
+    background: rgba(0, 217, 255, 0.2);
+  }
 }
 
 body.light-mode .airport-actions button {
