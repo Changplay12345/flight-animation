@@ -338,6 +338,9 @@ export const useFlightStore = create<FlightStore>((set, get) => ({
   airlineColors: {},
   selectedAirlines: [],
   
+  // Route Type Filter
+  routeTypeFilter: 'all',
+  
   setFlights: (flights, meta, stats) => {
     const keys = Object.keys(flights);
     let minTime = Infinity;
@@ -445,6 +448,7 @@ export const useFlightStore = create<FlightStore>((set, get) => ({
         actype: '',
         dep: '',
         dest: '',
+        routeType: 'all',
       },
     });
     get().updateTimelineBounds(null);
