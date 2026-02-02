@@ -2358,16 +2358,16 @@ function FilterPanel() {
       </div>
       
       <div className="filter-section">
-        <div className="filter-buttons">
-          <button id="filter-apply" onClick={() => applyFilter(matchingFlights)}>
+        <div className="filter-action-buttons">
+          <button className="filter-action-btn primary" onClick={() => applyFilter(matchingFlights)}>
             Apply ({matchingFlights.length})
           </button>
-          <button onClick={() => { clearFilter(); setAllVisibility(true); }}>Clear</button>
+          <button className="filter-action-btn" onClick={() => { clearFilter(); setAllVisibility(true); }}>Clear</button>
         </div>
-        <div className="filter-buttons">
-          <button onClick={() => setAllVisibility(true)}>Show All</button>
-          <button onClick={() => setAllVisibility(false)}>Hide All</button>
-          <button onClick={invertVisibility}>Invert</button>
+        <div className="filter-action-buttons" style={{ marginTop: '8px' }}>
+          <button className="filter-action-btn" onClick={() => setAllVisibility(true)}>Show All</button>
+          <button className="filter-action-btn" onClick={() => setAllVisibility(false)}>Hide All</button>
+          <button className="filter-action-btn" onClick={invertVisibility}>Invert</button>
         </div>
       </div>
       
@@ -2546,14 +2546,13 @@ function FilterPanel() {
         <>
         {/* Settings Section */}
         <div className="airline-settings-section">
-          <label className="airline-toggle-row">
-            <input
-              type="checkbox"
-              checked={airlineModeEnabled}
-              onChange={(e) => setAirlineModeEnabled(e.target.checked)}
-            />
-            <span>Enable Airline Colors</span>
-          </label>
+          <button 
+            className={`filter-action-btn ${airlineModeEnabled ? 'primary' : ''}`}
+            onClick={() => setAirlineModeEnabled(!airlineModeEnabled)}
+            style={{ width: '100%' }}
+          >
+            {airlineModeEnabled ? '✓ Airline Colors Enabled' : 'Enable Airline Colors'}
+          </button>
         </div>
         
         {/* Search Section */}

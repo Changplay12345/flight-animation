@@ -1214,6 +1214,63 @@ body.light-mode .flight-type-btn.active {
   color: #2196f3;
 }
 
+/* Filter Action Buttons */
+.filter-action-buttons {
+  display: flex;
+  gap: 6px;
+}
+
+.filter-action-btn {
+  flex: 1;
+  padding: 8px 12px;
+  font-size: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid #3a3a5a;
+  border-radius: 6px;
+  color: #aaa;
+  cursor: pointer;
+  transition: all 0.15s;
+  text-align: center;
+}
+
+.filter-action-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: #5a5a7a;
+  color: #fff;
+}
+
+.filter-action-btn.primary {
+  background: rgba(0, 217, 255, 0.15);
+  border-color: #00d9ff;
+  color: #00d9ff;
+}
+
+.filter-action-btn.primary:hover {
+  background: rgba(0, 217, 255, 0.25);
+}
+
+body.light-mode .filter-action-btn {
+  background: rgba(0, 0, 0, 0.03);
+  border-color: #ddd;
+  color: #666;
+}
+
+body.light-mode .filter-action-btn:hover {
+  background: rgba(0, 0, 0, 0.06);
+  border-color: #bbb;
+  color: #333;
+}
+
+body.light-mode .filter-action-btn.primary {
+  background: rgba(33, 150, 243, 0.1);
+  border-color: #2196f3;
+  color: #2196f3;
+}
+
+body.light-mode .filter-action-btn.primary:hover {
+  background: rgba(33, 150, 243, 0.2);
+}
+
 .filter-section {
   padding: 12px 15px;
   border-bottom: 1px solid #2a2a4a;
