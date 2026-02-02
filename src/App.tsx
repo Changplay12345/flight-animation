@@ -2,62 +2,12 @@ import { useRef, useState, useEffect, useCallback, useMemo, memo } from 'react';
 import { createPortal } from 'react-dom';
 import { MapContainer, useMap } from 'react-leaflet';
 import L from 'leaflet';
-import { getAirlineCode } from './store/flightStore';
+import { useFlightStore } from './store/flightStore';
 import { useAirportStore, loadAirports, loadRunways, getRunwaySurfaceText } from './store/airportStore';
 import type { Airport } from './store/airportStore';
 import { parseCSV } from './utils/csvParser';
 import { loadParquetFromUrl } from './utils/duckdbLoader';
 import { flToColor } from './utils/flightLevel';
-
-// Thailand airport codes list (major ones)
-const THAILAND_AIRPORTS = new Set([
-  'VTBB', 'VTBS', 'VTSP', 'VTBU', 'VTBD', 'VTBP', 'VTBH', 'VTBI', 'VTBJ', 'VTBK',
-  'VTBL', 'VTBM', 'VTBN', 'VTBO', 'VTBQ', 'VTBR', 'VTBT', 'VTBV', 'VTBW', 'VTBX',
-  'VTBY', 'VTBZ', 'VTCC', 'VTCH', 'VTCK', 'VTCL', 'VTCT', 'VTCC', 'VTCJ', 'VTCR',
-  'VTCS', 'VTDN', 'VTDV', 'VTGF', 'VTGL', 'VTGM', 'VTGN', 'VTGR', 'VTGU', 'VTGV',
-  'VTGW', 'VTGY', 'VTGZ', 'VTPC', 'VTPH', 'VTPJ', 'VTPK', 'VTPM', 'VTPO', 'VTPP',
-  'VTPQ', 'VTPR', 'VTSB', 'VTSC', 'VTSD', 'VTSE', 'VTSG', 'VTSI', 'VTSJ', 'VTSK',
-  'VTSL', 'VTSM', 'VTSN', 'VTSO', 'VTSP', 'VTSQ', 'VTSR', 'VTSS', 'VTST', 'VTSU',
-  'VTSV', 'VTSW', 'VTSX', 'VTSY', 'VTSZ', 'VTUI', 'VTUJ', 'VTUK', 'VTUL', 'VTUM',
-  'VTUN', 'VTUO', 'VTUP', 'VTUQ', 'VTUR', 'VTUS', 'VTUT', 'VTUU', 'VTUV', 'VTUW',
-  'VTUX', 'VTUY', 'VTUZ'
-]);
-
-// Check if airport is in Thailand
-const isThailandAirport = (airport?: string | null): boolean => {
-  return airport ? THAILAND_AIRPORTS.has(airport) : false;
-};
-
-// Route type filter logic
-const matchesRouteType = (
-  dep?: string | null, 
-  dest?: string | null, 
-  routeType: 'all' | 'inbound' | 'outbound' | 'domestic' | 'overfly'
-): boolean => {
-  if (!dep || !dest) return true; // If missing data, always show
-  
-  const depInThailand = isThailandAirport(dep);
-  const destInThailand = isThailandAirport(dest);
-  
-  switch (routeType) {
-    case 'inbound':
-      // DEST in Thailand, DEP outside Thailand
-      return destInThailand && !depInThailand;
-    case 'outbound':
-      // DEP in Thailand, DEST outside Thailand
-      return depInThailand && !destInThailand;
-    case 'domestic':
-      // Both DEP and DEST in Thailand
-      return depInThailand && destInThailand;
-    case 'overfly':
-      // Neither DEP nor DEST in Thailand
-      return !depInThailand && !destInThailand;
-    case 'all':
-    default:
-      return true;
-  }
-};
-
 import { AirwayLayer } from './components/AirwayLayer';
 import { GateLayer } from './components/GateLayer';
 import { BACCLayer } from './components/BACCLayer';
@@ -2044,6 +1994,7 @@ function FilterPanel() {
   const [airportFilterOpen, setAirportFilterOpen] = useState(false);
   const [filterTab, setFilterTab] = useState<'filter' | 'route' | 'airline'>('filter');
   const [airlineSearch, setAirlineSearch] = useState('');
+  const [flightTypeFilter, setFlightTypeFilter] = useState<'all' | 'inbound' | 'outbound' | 'domestic' | 'overfly'>('all');
   
   const airportFilterCode = useFlightStore(state => state.airportFilterCode);
   const setAirportFilterCode = useFlightStore(state => state.setAirportFilterCode);
@@ -2188,6 +2139,17 @@ function FilterPanel() {
     return maxFL === -Infinity ? null : maxFL;
   }, [flights]);
   
+  // Thailand airports for flight type filtering
+  const thailandAirports = useMemo(() => new Set([
+    'VTBS', 'VTBD', 'VTSP', 'VTCC', 'VTSS', 'VTUD', 'VTUK', 'VTUU', 'VTUW', 'VTPM',
+    'VTPH', 'VTPO', 'VTPB', 'VTPT', 'VTPP', 'VTPI', 'VTPL', 'VTPN', 'VTSC', 'VTSB',
+    'VTSF', 'VTSG', 'VTSH', 'VTSK', 'VTSM', 'VTSR', 'VTST', 'VTSE', 'VTUO', 'VTUI',
+    'VTUL', 'VTUN', 'VTUQ', 'VTUV', 'VTUW', 'VTCT', 'VTCL', 'VTCN', 'VTCP', 'VTCH',
+    'BKK', 'DMK', 'HKT', 'CNX', 'HDY', 'USM', 'KBV', 'CEI', 'UTP', 'UTH', 'UBP',
+    'NAK', 'NST', 'SGZ', 'TDX', 'TST', 'PHS', 'HHQ', 'MAQ', 'LPT', 'PRH', 'KKC',
+    'LOE', 'ROI', 'SNO', 'URT', 'NNT', 'PHY', 'THS', 'TKT', 'KOP', 'BTU'
+  ]), []);
+  
   // Matching flights
   const matchingFlights = useMemo(() => {
     return Object.keys(flights).filter(key => {
@@ -2212,12 +2174,36 @@ function FilterPanel() {
       if (filter.dep && meta.dep && !meta.dep.toUpperCase().includes(filter.dep.toUpperCase())) return false;
       if (filter.dest && meta.dest && !meta.dest.toUpperCase().includes(filter.dest.toUpperCase())) return false;
       
-      // Route type filter
-      if (!matchesRouteType(meta.dep, meta.dest, filter.routeType)) return false;
+      // Flight type filter
+      if (flightTypeFilter !== 'all') {
+        const dep = meta.dep?.toUpperCase() || '';
+        const dest = meta.dest?.toUpperCase() || '';
+        const depInThailand = thailandAirports.has(dep);
+        const destInThailand = thailandAirports.has(dest);
+        
+        switch (flightTypeFilter) {
+          case 'inbound':
+            // Destination in Thailand, Departure outside
+            if (!destInThailand || depInThailand) return false;
+            break;
+          case 'outbound':
+            // Departure in Thailand, Destination outside
+            if (!depInThailand || destInThailand) return false;
+            break;
+          case 'domestic':
+            // Both in Thailand
+            if (!depInThailand || !destInThailand) return false;
+            break;
+          case 'overfly':
+            // Neither in Thailand
+            if (depInThailand || destInThailand) return false;
+            break;
+        }
+      }
       
       return true;
     });
-  }, [flights, flightMeta, filter, getFlightMaxFL]);
+  }, [flights, flightMeta, filter, getFlightMaxFL, flightTypeFilter, thailandAirports]);
   
   // Get unique airports (both DEP and DEST) for airport filter dropdown - combine from routeData
   const airportOptions = useMemo(() => {
@@ -2429,6 +2415,47 @@ function FilterPanel() {
       {/* Route Tab */}
       {filterTab === 'route' && (
         <>
+        {/* Flight Type Filter */}
+        <div className="filter-section">
+          <label>Flight Type</label>
+          <div className="flight-type-buttons">
+            <button 
+              className={`flight-type-btn ${flightTypeFilter === 'all' ? 'active' : ''}`}
+              onClick={() => setFlightTypeFilter('all')}
+            >
+              All
+            </button>
+            <button 
+              className={`flight-type-btn ${flightTypeFilter === 'inbound' ? 'active' : ''}`}
+              onClick={() => setFlightTypeFilter('inbound')}
+              title="Destination in Thailand, Departure outside"
+            >
+              🛬 Inbound
+            </button>
+            <button 
+              className={`flight-type-btn ${flightTypeFilter === 'outbound' ? 'active' : ''}`}
+              onClick={() => setFlightTypeFilter('outbound')}
+              title="Departure in Thailand, Destination outside"
+            >
+              🛫 Outbound
+            </button>
+            <button 
+              className={`flight-type-btn ${flightTypeFilter === 'domestic' ? 'active' : ''}`}
+              onClick={() => setFlightTypeFilter('domestic')}
+              title="Both Departure and Destination in Thailand"
+            >
+              🏠 Domestic
+            </button>
+            <button 
+              className={`flight-type-btn ${flightTypeFilter === 'overfly' ? 'active' : ''}`}
+              onClick={() => setFlightTypeFilter('overfly')}
+              title="Neither Departure nor Destination in Thailand"
+            >
+              ✈️ Overfly
+            </button>
+          </div>
+        </div>
+        
         <div className="filter-section">
           <label>Route</label>
           <div className="filter-row-double">
@@ -2482,61 +2509,6 @@ function FilterPanel() {
           </div>
         </div>
         
-        <div className="filter-section">
-          <label>Route Type</label>
-          <div className="route-type-options">
-            <label className="route-type-option">
-              <input
-                type="radio"
-                name="routeType"
-                checked={filter.routeType === 'all'}
-                onChange={() => setFilter({ routeType: 'all' })}
-              />
-              <span>All Routes</span>
-            </label>
-            <label className="route-type-option">
-              <input
-                type="radio"
-                name="routeType"
-                checked={filter.routeType === 'inbound'}
-                onChange={() => setFilter({ routeType: 'inbound' })}
-              />
-              <span>🛬 Inbound</span>
-              <small>→ Thailand</small>
-            </label>
-            <label className="route-type-option">
-              <input
-                type="radio"
-                name="routeType"
-                checked={filter.routeType === 'outbound'}
-                onChange={() => setFilter({ routeType: 'outbound' })}
-              />
-              <span>🛫 Outbound</span>
-              <small>Thailand →</small>
-            </label>
-            <label className="route-type-option">
-              <input
-                type="radio"
-                name="routeType"
-                checked={filter.routeType === 'domestic'}
-                onChange={() => setFilter({ routeType: 'domestic' })}
-              />
-              <span>🏠 Domestic</span>
-              <small>Thailand ↔ Thailand</small>
-            </label>
-            <label className="route-type-option">
-              <input
-                type="radio"
-                name="routeType"
-                checked={filter.routeType === 'overfly'}
-                onChange={() => setFilter({ routeType: 'overfly' })}
-              />
-              <span>✈️ Overfly</span>
-              <small>Neither in Thailand</small>
-            </label>
-          </div>
-        </div>
-        
         <div className="filter-section airport-filter-section">
           <label>✈️ Airport Focus <span className="dep-color">■ DEP</span> <span className="dest-color">■ DEST</span></label>
           <div className="combobox" onClick={(e) => e.stopPropagation()}>
@@ -2573,10 +2545,7 @@ function FilterPanel() {
       {filterTab === 'airline' && (
         <>
         {/* Settings Section */}
-        <div className="filter-section airline-settings">
-          <div className="settings-header">
-            <span className="settings-title">⚙️ Settings</span>
-          </div>
+        <div className="airline-settings-section">
           <label className="airline-toggle-row">
             <input
               type="checkbox"
@@ -2588,16 +2557,14 @@ function FilterPanel() {
         </div>
         
         {/* Search Section */}
-        <div className="filter-section">
-          <label>Search Airlines</label>
+        <div className="airline-search-section">
           <input
             type="text"
-            placeholder="Search by code or name..."
+            placeholder="Search airlines..."
             value={airlineSearch}
             onChange={(e) => setAirlineSearch(e.target.value)}
             onKeyDown={(e) => {
               if (e.key === 'Enter' && filteredAirlines.length > 0) {
-                // Select all filtered airlines on Enter
                 const codes = filteredAirlines.map(([code]) => code);
                 const allSelected = codes.every(c => selectedAirlines.includes(c));
                 if (allSelected) {
@@ -2610,78 +2577,73 @@ function FilterPanel() {
           />
         </div>
         
-        {/* Airlines List Section */}
-        <div className="filter-section">
-          <div className="airlines-list-header">
-            <div className="airlines-list-title">
-              <span>Airlines</span>
-              <span className="airlines-count">
-                {filteredAirlines.length} {airlineSearch && 'filtered'}
-              </span>
-            </div>
-            <div className="airlines-actions">
-              <button 
-                className="airline-action-btn"
-                onClick={() => {
+        {/* List Header with Actions */}
+        <div className="airline-list-header">
+          <span className="airline-count">
+            {selectedAirlines.length > 0 
+              ? `${selectedAirlines.length} of ${filteredAirlines.length} selected`
+              : `${filteredAirlines.length} airlines`}
+            {airlineSearch && ' (filtered)'}
+          </span>
+          <div className="airline-actions">
+            <button 
+              className="airline-action-btn"
+              onClick={() => {
+                const codes = filteredAirlines.map(([code]) => code);
+                setSelectedAirlines([...new Set([...selectedAirlines, ...codes])]);
+              }}
+            >
+              Select All
+            </button>
+            <button 
+              className="airline-action-btn"
+              onClick={() => {
+                if (airlineSearch) {
                   const codes = filteredAirlines.map(([code]) => code);
-                  setSelectedAirlines([...new Set([...selectedAirlines, ...codes])]);
-                }}
-              >
-                Select All
-              </button>
-              <button 
-                className="airline-action-btn"
+                  setSelectedAirlines(selectedAirlines.filter(a => !codes.includes(a)));
+                } else {
+                  setSelectedAirlines([]);
+                }
+              }}
+            >
+              Clear
+            </button>
+          </div>
+        </div>
+        
+        {/* Airline List */}
+        <div className="airline-list">
+          {filteredAirlines.map(([code, count]) => {
+            const isSelected = selectedAirlines.includes(code);
+            const color = airlineColors[code] || '#888';
+            const airlineInfo = airlinesData[code];
+            return (
+              <div 
+                key={code}
+                className={`airline-item ${isSelected ? 'selected' : ''}`}
                 onClick={() => {
-                  if (airlineSearch) {
-                    // Clear only filtered
-                    const codes = filteredAirlines.map(([code]) => code);
-                    setSelectedAirlines(selectedAirlines.filter(a => !codes.includes(a)));
+                  if (isSelected) {
+                    setSelectedAirlines(selectedAirlines.filter(a => a !== code));
                   } else {
-                    setSelectedAirlines([]);
+                    setSelectedAirlines([...selectedAirlines, code]);
                   }
                 }}
               >
-                Clear All
-              </button>
-            </div>
-          </div>
-          
-          <div id="filter-results" className="airlines-results">
-            {filteredAirlines.map(([code, count]) => {
-              const isSelected = selectedAirlines.includes(code);
-              const color = airlineColors[code] || '#888';
-              const airlineInfo = airlinesData[code];
-              return (
-                <div 
-                  key={code}
-                  className={`filter-flight-item ${isSelected ? 'visible' : ''}`}
-                  onClick={() => {
-                    if (isSelected) {
-                      setSelectedAirlines(selectedAirlines.filter(a => a !== code));
-                    } else {
-                      setSelectedAirlines([...selectedAirlines, code]);
-                    }
-                  }}
-                >
-                  <div 
-                    className="flight-color" 
-                    style={{ background: color }}
-                  />
-                  <div className="flight-info">
-                    <span className="flight-key">{code}</span>
-                    <span className="flight-details">{airlineInfo?.name || 'Unknown'}</span>
-                    <span className="flight-route">{count} flights</span>
-                  </div>
-                  <input
-                    type="checkbox"
-                    checked={isSelected}
-                    onChange={() => {}}
-                    style={{ pointerEvents: 'none' }}
-                  />
+                <div className="airline-color" style={{ background: color }} />
+                <div className="airline-info">
+                  <span className="airline-code">{code}</span>
+                  <span className="airline-name">{airlineInfo?.name || 'Unknown'}</span>
                 </div>
-              );
-            })}
-          </div>
+                <span className="airline-flight-count">{count}</span>
+                <input
+                  type="checkbox"
+                  checked={isSelected}
+                  onChange={() => {}}
+                  className="airline-checkbox"
+                />
+              </div>
+            );
+          })}
         </div>
         </>
       )}

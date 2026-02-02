@@ -48,9 +48,6 @@ interface FlightStore {
   filter: FilterState;
   filterPanelOpen: boolean;
   
-  // Route Type Filter
-  routeTypeFilter: 'all' | 'inbound' | 'outbound' | 'domestic' | 'overfly';
-  
   // Locked flight (for tooltip tracking)
   lockedFlightKey: string | null;
   
@@ -220,9 +217,6 @@ interface FlightStore {
   setAirlineColors: (colors: Record<string, string>) => void;
   setSelectedAirlines: (airlines: string[]) => void;
   
-  // Route type filter action
-  setRouteTypeFilter: (routeType: 'all' | 'inbound' | 'outbound' | 'domestic' | 'overfly') => void;
-  
   updateTimelineBounds: (flightKeys: string[] | null) => void;
 }
 
@@ -257,7 +251,6 @@ export const useFlightStore = create<FlightStore>((set, get) => ({
     actype: '',
     dep: '',
     dest: '',
-    routeType: 'all',
   },
   filterPanelOpen: false,
   lockedFlightKey: null,
@@ -337,9 +330,6 @@ export const useFlightStore = create<FlightStore>((set, get) => ({
   airlineModeEnabled: false,
   airlineColors: {},
   selectedAirlines: [],
-  
-  // Route Type Filter
-  routeTypeFilter: 'all',
   
   setFlights: (flights, meta, stats) => {
     const keys = Object.keys(flights);
@@ -448,7 +438,6 @@ export const useFlightStore = create<FlightStore>((set, get) => ({
         actype: '',
         dep: '',
         dest: '',
-        routeType: 'all',
       },
     });
     get().updateTimelineBounds(null);
@@ -550,11 +539,6 @@ export const useFlightStore = create<FlightStore>((set, get) => ({
   setAirlineModeEnabled: (enabled) => set({ airlineModeEnabled: enabled }),
   setAirlineColors: (colors) => set({ airlineColors: colors }),
   setSelectedAirlines: (airlines) => set({ selectedAirlines: airlines }),
-  
-  // Route type filter action
-  setRouteTypeFilter: (routeType) => set(state => ({
-    filter: { ...state.filter, routeType }
-  })),
   
   lockToFlight: (key) => {
     const { lockedFlightKey, flightMeta, setVisibility } = get();

@@ -33,7 +33,6 @@ export interface FilterState {
   actype: string;
   dep: string;
   dest: string;
-  routeType: 'all' | 'inbound' | 'outbound' | 'domestic' | 'overfly';
 }
 
 export interface TimelineState {

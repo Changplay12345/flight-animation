@@ -963,73 +963,49 @@ body.light-mode .airline-toggle-row input[type="checkbox"] {
   accent-color: #2196f3;
 }
 
-/* Airline Settings Section */
-.airline-settings {
-  background: rgba(0, 217, 255, 0.05);
-  border: 1px solid rgba(0, 217, 255, 0.2);
-  border-radius: 8px;
-  margin-bottom: 8px;
-}
-
-.settings-header {
-  padding: 8px 15px;
-  border-bottom: 1px solid rgba(0, 217, 255, 0.1);
-  margin-bottom: 8px;
-}
-
-.settings-title {
-  font-size: 12px;
-  font-weight: 600;
-  color: #00d9ff;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.airline-settings .airline-toggle-row {
-  padding: 0 15px 12px 15px;
-  margin-top: 0;
-}
-
-body.light-mode .airline-settings {
-  background: rgba(33, 150, 243, 0.05);
-  border-color: rgba(33, 150, 243, 0.2);
-}
-
-body.light-mode .settings-title {
-  color: #2196f3;
-}
-
-body.light-mode .settings-header {
-  border-bottom-color: rgba(33, 150, 243, 0.1);
-}
-
-/* Airlines List Header */
-.airlines-list-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 12px;
-  padding-bottom: 8px;
+/* Airline Panel Sections */
+.airline-settings-section {
+  padding: 12px 15px;
+  background: rgba(0, 0, 0, 0.15);
   border-bottom: 1px solid #3a3a5a;
 }
 
-.airlines-list-title {
-  display: flex;
-  align-items: baseline;
-  gap: 8px;
+.airline-search-section {
+  padding: 10px 15px;
+  border-bottom: 1px solid #2a2a4a;
 }
 
-.airlines-list-title span:first-child {
-  font-weight: 600;
+.airline-search-section input {
+  width: 100%;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid #3a3a5a;
+  border-radius: 6px;
   color: #fff;
+  font-size: 13px;
 }
 
-.airlines-count {
-  font-size: 12px;
+.airline-search-section input:focus {
+  outline: none;
+  border-color: #00d9ff;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.airline-list-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 15px;
+  background: rgba(0, 0, 0, 0.1);
+  border-bottom: 1px solid #2a2a4a;
+}
+
+.airline-count {
+  font-size: 11px;
   color: #888;
 }
 
-.airlines-actions {
+.airline-actions {
   display: flex;
   gap: 6px;
 }
@@ -1037,89 +1013,205 @@ body.light-mode .settings-header {
 .airline-action-btn {
   padding: 4px 10px;
   font-size: 11px;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: transparent;
+  border: 1px solid #4a4a6a;
   border-radius: 4px;
-  color: #fff;
+  color: #aaa;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.15s;
 }
 
 .airline-action-btn:hover {
-  background: rgba(255, 255, 255, 0.15);
-  border-color: rgba(255, 255, 255, 0.3);
+  background: rgba(0, 217, 255, 0.1);
+  border-color: #00d9ff;
+  color: #00d9ff;
 }
 
-.airlines-results {
-  max-height: 280px;
+.airline-list {
+  max-height: 300px;
+  overflow-y: auto;
 }
 
-body.light-mode .airlines-list-header {
-  border-bottom-color: #ddd;
-}
-
-body.light-mode .airlines-list-title span:first-child {
-  color: #333;
-}
-
-body.light-mode .airline-action-btn {
-  background: rgba(0, 0, 0, 0.05);
-  border-color: rgba(0, 0, 0, 0.1);
-  color: #333;
-}
-
-body.light-mode .airline-action-btn:hover {
-  background: rgba(0, 0, 0, 0.08);
-  border-color: rgba(0, 0, 0, 0.15);
-}
-
-/* Route Type Options */
-.route-type-options {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.route-type-option {
+.airline-item {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 10px;
-  border-radius: 6px;
+  gap: 10px;
+  padding: 10px 15px;
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: background 0.15s;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
 }
 
-.route-type-option:hover {
+.airline-item:hover {
   background: rgba(255, 255, 255, 0.05);
 }
 
-.route-type-option input[type="radio"] {
-  accent-color: #00d9ff;
-  margin: 0;
+.airline-item.selected {
+  background: rgba(0, 217, 255, 0.08);
 }
 
-.route-type-option span {
+.airline-color {
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
+.airline-info {
   flex: 1;
-  font-weight: 500;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
 
-.route-type-option small {
-  font-size: 10px;
+.airline-code {
+  font-size: 13px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.airline-name {
+  font-size: 11px;
   color: #888;
-  margin-left: 4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-body.light-mode .route-type-option:hover {
+.airline-flight-count {
+  font-size: 11px;
+  color: #666;
+  padding: 2px 6px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+  flex-shrink: 0;
+}
+
+.airline-checkbox {
+  width: 16px;
+  height: 16px;
+  accent-color: #00d9ff;
+  pointer-events: none;
+  flex-shrink: 0;
+}
+
+/* Light mode */
+body.light-mode .airline-settings-section {
+  background: rgba(0, 0, 0, 0.03);
+  border-bottom-color: #ddd;
+}
+
+body.light-mode .airline-search-section {
+  border-bottom-color: #eee;
+}
+
+body.light-mode .airline-search-section input {
+  background: rgba(0, 0, 0, 0.04);
+  border-color: #ddd;
+  color: #333;
+}
+
+body.light-mode .airline-search-section input:focus {
+  border-color: #2196f3;
+  background: rgba(0, 0, 0, 0.06);
+}
+
+body.light-mode .airline-list-header {
+  background: rgba(0, 0, 0, 0.02);
+  border-bottom-color: #eee;
+}
+
+body.light-mode .airline-action-btn {
+  border-color: #ddd;
+  color: #666;
+}
+
+body.light-mode .airline-action-btn:hover {
+  background: rgba(33, 150, 243, 0.1);
+  border-color: #2196f3;
+  color: #2196f3;
+}
+
+body.light-mode .airline-item {
+  border-bottom-color: rgba(0, 0, 0, 0.03);
+}
+
+body.light-mode .airline-item:hover {
+  background: rgba(0, 0, 0, 0.03);
+}
+
+body.light-mode .airline-item.selected {
+  background: rgba(33, 150, 243, 0.08);
+}
+
+body.light-mode .airline-code {
+  color: #333;
+}
+
+body.light-mode .airline-name {
+  color: #666;
+}
+
+body.light-mode .airline-flight-count {
+  color: #888;
   background: rgba(0, 0, 0, 0.05);
 }
 
-body.light-mode .route-type-option input[type="radio"] {
+body.light-mode .airline-checkbox {
   accent-color: #2196f3;
 }
 
-body.light-mode .route-type-option small {
+/* Flight Type Filter Buttons */
+.flight-type-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.flight-type-btn {
+  flex: 1;
+  min-width: 70px;
+  padding: 8px 6px;
+  font-size: 11px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid #3a3a5a;
+  border-radius: 6px;
+  color: #888;
+  cursor: pointer;
+  transition: all 0.15s;
+  text-align: center;
+}
+
+.flight-type-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: #5a5a7a;
+  color: #fff;
+}
+
+.flight-type-btn.active {
+  background: rgba(0, 217, 255, 0.15);
+  border-color: #00d9ff;
+  color: #00d9ff;
+}
+
+body.light-mode .flight-type-btn {
+  background: rgba(0, 0, 0, 0.03);
+  border-color: #ddd;
   color: #666;
+}
+
+body.light-mode .flight-type-btn:hover {
+  background: rgba(0, 0, 0, 0.06);
+  border-color: #bbb;
+  color: #333;
+}
+
+body.light-mode .flight-type-btn.active {
+  background: rgba(33, 150, 243, 0.1);
+  border-color: #2196f3;
+  color: #2196f3;
 }
 
 .filter-section {
