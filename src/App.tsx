@@ -1992,7 +1992,8 @@ function FilterPanel() {
   const [destOpen, setDestOpen] = useState(false);
   const [actypeOpen, setActypeOpen] = useState(false);
   const [airportFilterOpen, setAirportFilterOpen] = useState(false);
-  const [filterTab, setFilterTab] = useState<'filter' | 'airline'>('filter');
+  const [filterTab, setFilterTab] = useState<'filter' | 'route' | 'airline'>('filter');
+  const [airlineSearch, setAirlineSearch] = useState('');
   
   const airportFilterCode = useFlightStore(state => state.airportFilterCode);
   const setAirportFilterCode = useFlightStore(state => state.setAirportFilterCode);
@@ -2017,6 +2018,16 @@ function FilterPanel() {
     });
     return Object.entries(airlines).sort((a, b) => b[1] - a[1]);
   }, [flightMeta]);
+  
+  // Filtered airlines based on search
+  const filteredAirlines = useMemo(() => {
+    if (!airlineSearch) return extractedAirlines;
+    const search = airlineSearch.toUpperCase();
+    return extractedAirlines.filter(([code]) => {
+      const info = airlinesData[code];
+      return code.includes(search) || (info?.name?.toUpperCase().includes(search));
+    });
+  }, [extractedAirlines, airlineSearch, airlinesData]);
   
   // Load airlines CSV on mount
   useEffect(() => {
@@ -2192,6 +2203,12 @@ function FilterPanel() {
           🔍 Filter
         </button>
         <button 
+          className={`filter-tab ${filterTab === 'route' ? 'active' : ''}`}
+          onClick={() => setFilterTab('route')}
+        >
+          🛫 Route
+        </button>
+        <button 
           className={`filter-tab ${filterTab === 'airline' ? 'active' : ''}`}
           onClick={() => setFilterTab('airline')}
         >
@@ -2208,6 +2225,7 @@ function FilterPanel() {
           placeholder="Flight key or ACID..."
           value={filter.searchText}
           onChange={(e) => setFilter({ searchText: e.target.value })}
+          onKeyDown={(e) => { if (e.key === 'Enter') applyFilter(matchingFlights); }}
         />
         <div className="filter-checkboxes">
           <label>
@@ -2236,89 +2254,6 @@ function FilterPanel() {
             />
             ACID
           </label>
-        </div>
-      </div>
-      
-      <div className="filter-section">
-        <label>Route</label>
-        <div className="filter-row-double">
-          <div className="combobox" onClick={(e) => e.stopPropagation()}>
-            <input
-              type="text"
-              placeholder="DEP"
-              value={filter.dep}
-              onChange={(e) => setFilter({ dep: e.target.value.toUpperCase() })}
-              onFocus={() => setDepOpen(true)}
-            />
-            <button className="dropdown-btn" onClick={() => setDepOpen(!depOpen)}>▼</button>
-            {depOpen && (
-              <div className="dropdown-list">
-                {dropdownOptions.deps
-                  .filter(([dep]) => dep.toUpperCase().includes(filter.dep.toUpperCase()))
-                  .slice(0, 50)
-                  .map(([dep, count]) => (
-                    <div key={dep} className="dropdown-item" onClick={() => { setFilter({ dep }); setDepOpen(false); }}>
-                      <span className="dropdown-value">{dep}</span>
-                      <span className="dropdown-count">{count}</span>
-                    </div>
-                  ))}
-              </div>
-            )}
-          </div>
-          <span className="arrow">→</span>
-          <div className="combobox" onClick={(e) => e.stopPropagation()}>
-            <input
-              type="text"
-              placeholder="DEST"
-              value={filter.dest}
-              onChange={(e) => setFilter({ dest: e.target.value.toUpperCase() })}
-              onFocus={() => setDestOpen(true)}
-            />
-            <button className="dropdown-btn" onClick={() => setDestOpen(!destOpen)}>▼</button>
-            {destOpen && (
-              <div className="dropdown-list">
-                {dropdownOptions.dests
-                  .filter(([dest]) => dest.toUpperCase().includes(filter.dest.toUpperCase()))
-                  .slice(0, 50)
-                  .map(([dest, count]) => (
-                    <div key={dest} className="dropdown-item" onClick={() => { setFilter({ dest }); setDestOpen(false); }}>
-                      <span className="dropdown-value">{dest}</span>
-                      <span className="dropdown-count">{count}</span>
-                    </div>
-                  ))}
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-      
-      <div className="filter-section airport-filter-section">
-        <label>✈️ Airport Focus <span className="dep-color">■ DEP</span> <span className="dest-color">■ DEST</span></label>
-        <div className="combobox" onClick={(e) => e.stopPropagation()}>
-          <input
-            type="text"
-            placeholder="Select airport..."
-            value={airportFilterCode}
-            onChange={(e) => setAirportFilterCode(e.target.value.toUpperCase())}
-            onFocus={() => setAirportFilterOpen(true)}
-          />
-          <button className="dropdown-btn" onClick={() => setAirportFilterOpen(!airportFilterOpen)}>▼</button>
-          {airportFilterCode && (
-            <button className="clear-btn" onClick={() => setAirportFilterCode('')}>×</button>
-          )}
-          {airportFilterOpen && (
-            <div className="dropdown-list">
-              {airportOptions
-                .filter(([code]) => code.toUpperCase().includes(airportFilterCode.toUpperCase()))
-                .slice(0, 50)
-                .map(([code, count]) => (
-                  <div key={code} className="dropdown-item" onClick={() => { setAirportFilterCode(code); setAirportFilterOpen(false); }}>
-                    <span className="dropdown-value">{code}</span>
-                    <span className="dropdown-count">{count}</span>
-                  </div>
-                ))}
-            </div>
-          )}
         </div>
       </div>
       
@@ -2438,32 +2373,155 @@ function FilterPanel() {
       </>
       )}
       
+      {/* Route Tab */}
+      {filterTab === 'route' && (
+        <>
+        <div className="filter-section">
+          <label>Route</label>
+          <div className="filter-row-double">
+            <div className="combobox" onClick={(e) => e.stopPropagation()}>
+              <input
+                type="text"
+                placeholder="DEP"
+                value={filter.dep}
+                onChange={(e) => setFilter({ dep: e.target.value.toUpperCase() })}
+                onFocus={() => setDepOpen(true)}
+              />
+              <button className="dropdown-btn" onClick={() => setDepOpen(!depOpen)}>▼</button>
+              {depOpen && (
+                <div className="dropdown-list">
+                  {dropdownOptions.deps
+                    .filter(([dep]) => dep.toUpperCase().includes(filter.dep.toUpperCase()))
+                    .slice(0, 50)
+                    .map(([dep, count]) => (
+                      <div key={dep} className="dropdown-item" onClick={() => { setFilter({ dep }); setDepOpen(false); }}>
+                        <span className="dropdown-value">{dep}</span>
+                        <span className="dropdown-count">{count}</span>
+                      </div>
+                    ))}
+                </div>
+              )}
+            </div>
+            <span className="arrow">→</span>
+            <div className="combobox" onClick={(e) => e.stopPropagation()}>
+              <input
+                type="text"
+                placeholder="DEST"
+                value={filter.dest}
+                onChange={(e) => setFilter({ dest: e.target.value.toUpperCase() })}
+                onFocus={() => setDestOpen(true)}
+              />
+              <button className="dropdown-btn" onClick={() => setDestOpen(!destOpen)}>▼</button>
+              {destOpen && (
+                <div className="dropdown-list">
+                  {dropdownOptions.dests
+                    .filter(([dest]) => dest.toUpperCase().includes(filter.dest.toUpperCase()))
+                    .slice(0, 50)
+                    .map(([dest, count]) => (
+                      <div key={dest} className="dropdown-item" onClick={() => { setFilter({ dest }); setDestOpen(false); }}>
+                        <span className="dropdown-value">{dest}</span>
+                        <span className="dropdown-count">{count}</span>
+                      </div>
+                    ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+        
+        <div className="filter-section airport-filter-section">
+          <label>✈️ Airport Focus <span className="dep-color">■ DEP</span> <span className="dest-color">■ DEST</span></label>
+          <div className="combobox" onClick={(e) => e.stopPropagation()}>
+            <input
+              type="text"
+              placeholder="Select airport..."
+              value={airportFilterCode}
+              onChange={(e) => setAirportFilterCode(e.target.value.toUpperCase())}
+              onFocus={() => setAirportFilterOpen(true)}
+            />
+            <button className="dropdown-btn" onClick={() => setAirportFilterOpen(!airportFilterOpen)}>▼</button>
+            {airportFilterCode && (
+              <button className="clear-btn" onClick={() => setAirportFilterCode('')}>×</button>
+            )}
+            {airportFilterOpen && (
+              <div className="dropdown-list">
+                {airportOptions
+                  .filter(([code]) => code.toUpperCase().includes(airportFilterCode.toUpperCase()))
+                  .slice(0, 50)
+                  .map(([code, count]) => (
+                    <div key={code} className="dropdown-item" onClick={() => { setAirportFilterCode(code); setAirportFilterOpen(false); }}>
+                      <span className="dropdown-value">{code}</span>
+                      <span className="dropdown-count">{count}</span>
+                    </div>
+                  ))}
+              </div>
+            )}
+          </div>
+        </div>
+        </>
+      )}
+      
       {/* Airline Mode Tab */}
       {filterTab === 'airline' && (
         <div className="filter-section">
-          <div className="filter-row" style={{ marginBottom: '12px' }}>
-            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
-              <input
-                type="checkbox"
-                checked={airlineModeEnabled}
-                onChange={(e) => setAirlineModeEnabled(e.target.checked)}
-              />
-              <span>Enable Airline Colors</span>
-            </label>
+          <label className="airline-toggle-row">
+            <input
+              type="checkbox"
+              checked={airlineModeEnabled}
+              onChange={(e) => setAirlineModeEnabled(e.target.checked)}
+            />
+            <span>Enable Airline Colors</span>
+          </label>
+          
+          <div style={{ marginTop: '12px' }}>
+            <label>Search Airlines</label>
+            <input
+              type="text"
+              placeholder="Search by code or name..."
+              value={airlineSearch}
+              onChange={(e) => setAirlineSearch(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && filteredAirlines.length > 0) {
+                  // Select all filtered airlines on Enter
+                  const codes = filteredAirlines.map(([code]) => code);
+                  const allSelected = codes.every(c => selectedAirlines.includes(c));
+                  if (allSelected) {
+                    setSelectedAirlines(selectedAirlines.filter(a => !codes.includes(a)));
+                  } else {
+                    setSelectedAirlines([...new Set([...selectedAirlines, ...codes])]);
+                  }
+                }
+              }}
+            />
           </div>
           
-          <label>Airlines ({extractedAirlines.length})</label>
-          <div className="filter-buttons" style={{ marginBottom: '8px' }}>
-            <button onClick={() => setSelectedAirlines(extractedAirlines.map(([code]) => code))}>
-              Select All
-            </button>
-            <button onClick={() => setSelectedAirlines([])}>
-              Clear All
-            </button>
+          <div style={{ marginTop: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span style={{ fontSize: '12px', color: '#888' }}>
+              {filteredAirlines.length} airlines {airlineSearch && `(filtered)`}
+            </span>
+            <div className="filter-buttons" style={{ margin: 0 }}>
+              <button onClick={() => {
+                const codes = filteredAirlines.map(([code]) => code);
+                setSelectedAirlines([...new Set([...selectedAirlines, ...codes])]);
+              }}>
+                Select All
+              </button>
+              <button onClick={() => {
+                if (airlineSearch) {
+                  // Clear only filtered
+                  const codes = filteredAirlines.map(([code]) => code);
+                  setSelectedAirlines(selectedAirlines.filter(a => !codes.includes(a)));
+                } else {
+                  setSelectedAirlines([]);
+                }
+              }}>
+                Clear All
+              </button>
+            </div>
           </div>
           
-          <div id="filter-results" style={{ maxHeight: '300px' }}>
-            {extractedAirlines.map(([code, count]) => {
+          <div id="filter-results" style={{ maxHeight: '280px', marginTop: '8px' }}>
+            {filteredAirlines.map(([code, count]) => {
               const isSelected = selectedAirlines.includes(code);
               const color = airlineColors[code] || '#888';
               const airlineInfo = airlinesData[code];

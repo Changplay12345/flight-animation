@@ -938,6 +938,31 @@ body.light-mode .filter-tab.active {
   border-bottom-color: #2196f3;
 }
 
+/* Airline toggle row */
+.airline-toggle-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  padding: 8px 0;
+  font-weight: 500;
+}
+
+.airline-toggle-row input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  accent-color: #00d9ff;
+}
+
+.airline-toggle-row span {
+  user-select: none;
+}
+
+body.light-mode .airline-toggle-row input[type="checkbox"] {
+  accent-color: #2196f3;
+}
+
 .filter-section {
   padding: 12px 15px;
   border-bottom: 1px solid #2a2a4a;
