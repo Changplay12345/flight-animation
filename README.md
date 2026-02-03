@@ -28,8 +28,16 @@
  - `@vitejs/plugin-react`
  - `babel-plugin-react-compiler`
  
- **Python (merge scripts)**
- - Located in `e:\Dowload\work\flight-animation\` (no pinned `requirements.txt` confirmed in this snapshot).
+ **Python (merge scripts & API)**
+- Merge scripts: Located in `e:\Dowload\work\flight-animation\` 
+- Database API: `tools/db_viewer_api/requirements.txt`:
+  ```
+  fastapi>=0.109.0
+  uvicorn[standard]>=0.27.0
+  sqlalchemy[asyncio]>=2.0.25
+  asyncpg>=0.29.0
+  pandas>=2.2.0
+  ```
  
  ## 3) Repo/Folders Layout (key directories and what they contain)
  **`e:\Dowload\work\flight-animation-react\`**
@@ -42,19 +50,48 @@
  - `public\` — static assets (airport/runway CSVs + images)
  
  **`e:\Dowload\work\flight-animation\`**
- - `data\` — datasets (inputs/outputs)
- - `merge_flights_testing_purpose.py` — authoritative merge script
+- `data\` — datasets (inputs/outputs)
+- `merge_flights_testing_purpose.py` — authoritative merge script
+
+**`tools\db_viewer_api\`**
+- `main.py` — FastAPI server for database operations
+- `requirements.txt` — Python dependencies
+- `services/` — API service modules
  
  ## 4) How to Run (dev/build/lint/test + URLs/ports)
- From `e:\Dowload\work\flight-animation-react`:
- - Dev: `npm run dev`
- - Build: `npm run build`
- - Lint: `npm run lint`
- - Preview: `npm run preview`
- 
- URL (dev): `http://localhost:5173/`
- 
- Tests: none.
+
+### Quick Start (Just view flights)
+```bash
+git clone <repo>
+cd flight-animation-react
+npm install
+npm run dev
+```
+URL: `http://localhost:5173/`
+
+### Full Setup (with all features)
+```bash
+# Frontend
+npm install
+npm run dev
+
+# Optional: Database API (for dataset creation, db viewer)
+cd tools/db_viewer_api
+pip install -r requirements.txt
+python main.py
+
+# Optional: Cloudflare tunnel (for external API access)
+npm install -g cloudflared
+cloudflared tunnel --url http://localhost:8000
+```
+
+### Commands
+- Dev: `npm run dev`
+- Build: `npm run build`
+- Lint: `npm run lint`
+- Preview: `npm run preview`
+
+Tests: none.
  
  ## 5) Data / Inputs / Outputs (file names, locations, column meanings if relevant)
  **Frontend static inputs (`public`)**
@@ -95,11 +132,16 @@
  - Output size should not explode.
  
  ## 6) Key Features (short bullets)
- - Leaflet-based flight animation
- - Rotated markers (`leaflet-rotatedmarker`)
- - In-browser CSV parsing (`papaparse`)
- - Tooltip: shortened flight key + IAS/HDG + FL climb/descend arrow
- - Loading overlay stays above UI during parsing
+- Leaflet-based flight animation
+- Rotated markers (`leaflet-rotatedmarker`)
+- In-browser CSV parsing (`papaparse`)
+- Tooltip: shortened flight key + IAS/HDG + FL climb/descend arrow
+- Loading overlay stays above UI during parsing
+- **NEW:** Airline filtering with color coding
+- **NEW:** Flight type filtering (inbound/outbound/domestic/overfly)
+- **NEW:** Route and airport focus filters
+- **NEW:** Database viewer for flight features
+- **NEW:** Dataset creation and management
  
  ## 7) What We Changed (exact files + what changed + why)
  **Frontend**
@@ -130,13 +172,18 @@
  - Removing SUR_AIR dedupe can reintroduce cartesian explosion.
  - SUR_AIR is read with `header=None`; column indices must match the file.
  
- ## 10) Current Status + Next Steps (what’s done, what’s pending)
- **Done**
- - Tooltip key shortened
- - IAS/HDG displayed
- - Climb/descend arrow fixed
- - Loading overlay visible
- - Merge output stabilized
+ ## 10) Current Status + Next Steps (what's done, what's pending)
+**Done**
+- Tooltip key shortened
+- IAS/HDG displayed
+- Climb/descend arrow fixed
+- Loading overlay visible
+- Merge output stabilized
+- Airline filtering system implemented
+- Flight type filtering added
+- Modern button styling applied
+- Auto-detect localhost API for local dev
+- Compact UI design implemented
  
  ## 11) Required CSV Columns for Flight Animation
 
@@ -169,5 +216,38 @@
 - Empty/null values are handled gracefully
 - Missing optional columns will not break the app, just reduce functionality
 
-**Next steps**
-- Add merge-time assertion: merged row count == CAT062 row count.
+## 12) Environment Configuration
+
+The app automatically detects local vs production environment:
+- **Local dev** (localhost) → Uses `http://localhost:8000` for API
+- **Production** → Uses Cloudflare tunnel URL
+
+No `.env` file required - configuration is built-in!
+
+## 13) Project Setup for New Contributors
+
+### What You Need to Install
+**Required:**
+- Node.js (v16+) - `npm install -g node`
+- Git
+
+**Optional (for full features):**
+- Python 3.8+ - for db_viewer_api
+- pip - Python package manager
+- cloudflared - for tunnel access: `npm install -g cloudflared`
+
+### What Works Out of the Box
+- ✅ View flight animations
+- ✅ Load data from R2 bucket
+- ✅ All filtering and UI features
+- ✅ No configuration needed
+
+### What Requires Additional Setup
+- 📊 Database Viewer & Dataset Creation → Python API server
+- 🌐 External API Access → Cloudflare tunnel
+- 📁 Local Data Processing → Python merge scripts
+
+### Troubleshooting
+- **API not working?** → Start `python tools/db_viewer_api/main.py`
+- **Can't create datasets?** → Run `cloudflared tunnel --url http://localhost:8000`
+- **Data not loading?** → Check network connection to R2 bucket
