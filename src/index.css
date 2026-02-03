@@ -853,6 +853,7 @@ body.light-mode .airway-dropdown .opacity-value {
   top: 100px;
   right: 10px;
   width: 280px;
+  height: 600px;
   max-height: calc(100vh - 120px);
   background: rgba(26, 26, 46, 0.95);
   border: 1px solid #3a3a5a;
@@ -861,6 +862,7 @@ body.light-mode .airway-dropdown .opacity-value {
   display: none;
   flex-direction: column;
   overflow: hidden;
+  backdrop-filter: blur(10px);
 }
 
 #filter-panel.visible {
