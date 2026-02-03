@@ -1216,7 +1216,7 @@ body.light-mode .flight-type-btn.active {
   color: #2196f3;
 }
 
-/* Filter Action Buttons */
+/* Filter Action Buttons - matches airline-action-btn style */
 .filter-action-buttons {
   display: flex;
   gap: 6px;
@@ -1224,11 +1224,11 @@ body.light-mode .flight-type-btn.active {
 
 .filter-action-btn {
   flex: 1;
-  padding: 8px 12px;
-  font-size: 12px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid #3a3a5a;
-  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: 11px;
+  background: transparent;
+  border: 1px solid #4a4a6a;
+  border-radius: 4px;
   color: #aaa;
   cursor: pointer;
   transition: all 0.15s;
@@ -1236,9 +1236,9 @@ body.light-mode .flight-type-btn.active {
 }
 
 .filter-action-btn:hover {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: #5a5a7a;
-  color: #fff;
+  background: rgba(0, 217, 255, 0.1);
+  border-color: #00d9ff;
+  color: #00d9ff;
 }
 
 .filter-action-btn.primary {
@@ -1252,15 +1252,15 @@ body.light-mode .flight-type-btn.active {
 }
 
 body.light-mode .filter-action-btn {
-  background: rgba(0, 0, 0, 0.03);
-  border-color: #ddd;
+  background: transparent;
+  border-color: #ccc;
   color: #666;
 }
 
 body.light-mode .filter-action-btn:hover {
-  background: rgba(0, 0, 0, 0.06);
-  border-color: #bbb;
-  color: #333;
+  background: rgba(33, 150, 243, 0.1);
+  border-color: #2196f3;
+  color: #2196f3;
 }
 
 body.light-mode .filter-action-btn.primary {
@@ -1274,7 +1274,7 @@ body.light-mode .filter-action-btn.primary:hover {
 }
 
 .filter-section {
-  padding: 12px 15px;
+  padding: 8px 12px;
   border-bottom: 1px solid #2a2a4a;
 }
 
@@ -1366,8 +1366,8 @@ body.light-mode .filter-action-btn.primary:hover {
 .fl-range-row {
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin-bottom: 8px;
+  gap: 6px;
+  margin-bottom: 4px;
 }
 
 .fl-range-row:last-child {
@@ -1376,33 +1376,34 @@ body.light-mode .filter-action-btn.primary:hover {
 
 .fl-range-row .fl-label {
   color: #888;
-  font-size: 11px;
-  width: 30px;
+  font-size: 10px;
+  width: 24px;
 }
 
 .fl-range-row input[type="range"] {
   flex: 1;
-  height: 6px;
+  height: 4px;
   -webkit-appearance: none;
   appearance: none;
   background: #3a3a5a;
-  border-radius: 3px;
+  border-radius: 2px;
   cursor: pointer;
 }
 
 .fl-range-row input[type="range"]::-webkit-slider-thumb {
   -webkit-appearance: none;
-  width: 16px;
-  height: 16px;
+  width: 12px;
+  height: 12px;
   background: #4a9eff;
   border-radius: 50%;
   cursor: pointer;
 }
 
 .fl-range-row input[type="number"] {
-  width: 55px !important;
+  width: 45px !important;
   text-align: center;
-  padding: 5px !important;
+  padding: 3px !important;
+  font-size: 11px;
 }
 
 .combobox {
