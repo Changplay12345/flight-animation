@@ -259,7 +259,7 @@ async def create_flight_feature_dataset(
                     ON s.flight_key = t.flight_key 
                     AND DATE(t.start_time) = '{date_str}'
                 {airport_where}
-                ORDER BY s.flight_key ASC
+                ORDER BY s.flight_key ASC, s.time_of_track ASC
             """
         else:
             # No track table found, just copy sur_air data with selected columns
@@ -268,7 +268,7 @@ async def create_flight_feature_dataset(
                 SELECT {selected_cols}
                 FROM sur_air."{sur_air_table}" s
                 {airport_where}
-                ORDER BY s.flight_key ASC
+                ORDER BY s.flight_key ASC, s.time_of_track ASC
             """
         
         async with engine.begin() as conn:

@@ -100,7 +100,7 @@ async def generate_parquet(
     if conditions:
         where_clause = "WHERE " + " AND ".join(conditions)
     
-    query = f'SELECT * FROM flight_features."{dataset_safe}" {where_clause}'
+    query = f'SELECT * FROM flight_features."{dataset_safe}" {where_clause} ORDER BY flight_key ASC, time_of_track ASC'
     
     try:
         # Use psycopg2 directly for sync connection
