@@ -65,8 +65,8 @@ export function parseCSV(
           
           const lat = +row.latitude;
           const lon = +row.longitude;
-          // Support both timestamp_utc and time_of_track column names
-          const t = Date.parse(row.timestamp_utc || row.time_of_track);
+          // Support both time_of_track and timestamp_utc column names (prefer time_of_track)
+          const t = Date.parse(row.time_of_track || row.timestamp_utc);
           
           if (lat !== lat || lon !== lon || t !== t) continue;
           
