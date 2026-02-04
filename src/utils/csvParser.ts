@@ -119,17 +119,6 @@ export function parseCSV(
         }
       },
       complete: () => {
-        // Debug: log earliest time found
-        let debugMinTime = Infinity;
-        let debugMinKey = '';
-        for (const [key, data] of Object.entries(rawFlights)) {
-          if (data.points.length > 0 && data.points[0][0] < debugMinTime) {
-            debugMinTime = data.points[0][0];
-            debugMinKey = key;
-          }
-        }
-        console.log('[CSV Debug] Earliest time:', new Date(debugMinTime).toISOString(), 'from flight:', debugMinKey);
-        
         const result = buildFlights(rawFlights, rowCount, globalMinFL, globalMaxFL);
         resolve(result);
       },

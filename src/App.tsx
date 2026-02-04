@@ -702,9 +702,14 @@ function Toolbar() {
   
   const timeDisplay = useMemo(() => {
     const date = new Date(timeline.current);
-    const dateStr = date.toISOString().slice(0, 10); // YYYY-MM-DD
-    const timeStr = date.toISOString().slice(11, 19); // HH:MM:SS
-    return `${dateStr} ${timeStr}`;
+    // Use local time display (not UTC) to match the input data format
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    const seconds = String(date.getSeconds()).padStart(2, '0');
+    return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
   }, [timeline.current]);
 
   return (
